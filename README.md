@@ -4,6 +4,8 @@
 
 Runline is not an embedded chatbot. Its ten structured browser tools read the actual workspace, record disruptions, propose constraint-checked changes, and request organizer review. The organizer compares before/after, protects sessions, and explicitly applies or rejects a proposal.
 
+**Live demo:** https://runline-control-room.advikmjevoor.chatgpt.site
+
 ## Try the story
 
 1. Open the app. Every browser receives an isolated fictional Common Ground 2026 event: 12 sessions, 3 rooms, and two locked sessions.
@@ -68,7 +70,7 @@ This is a hackathon demonstration, not a production event-management service. Do
 
 The included Sites configuration declares the logical D1 binding `DB`. The platform provisions the real database; do not hardcode database credentials. Build output is a Cloudflare Worker under `dist/server` with static assets. Set trusted runtime variable `RUNLINE_PUBLIC_ORIGIN` to the deployed origin for absolute social previews. Local metadata defaults to `http://localhost:3000`; it never trusts forwarded host headers. No secret is required by this application.
 
-The initial hosted release is owner-only. Public app access, a public source repository, and a public narrated video must be authorized and verified before the hackathon submission is final.
+The hosted demo is public and was verified from a credential-free session on September 1, 2026. A public source repository and public narrated video still need publication and signed-out verification before the hackathon submission is final.
 
 ## Project materials
 
