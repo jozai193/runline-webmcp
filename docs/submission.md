@@ -1,12 +1,12 @@
 # WebMCP Challenge submission pack
 
-Prepared September 1, 2026, India time. The live demo is public. The source repository, video and Devpost entry remain unpublished drafts; no final submission has been made on the entrant's behalf.
+Prepared September 1, 2026, India time. The live demo and source repository are public. The video and Devpost entry remain unpublished drafts; no final submission has been made on the entrant's behalf.
 
 ## Submission fields
 
 **Project name:** Runline
 
-**Tagline:** A shared event schedule for humans and browser agents. Repair disruptions, protect decisions, and approve every change.
+**Tagline:** Runline lets organizers and browser agents repair live schedules together—using real constraints while keeping every final decision human.
 
 **Built with:** WebMCP, TypeScript, React, Vinext, Cloudflare Workers, D1, Drizzle, Tailwind CSS, shadcn/Base UI.
 
@@ -16,11 +16,39 @@ Prepared September 1, 2026, India time. The live demo is public. The source repo
 
 **Video URL:** Use the verified public narrated YouTube video under three minutes. Do not submit this script as a video.
 
+**Thumbnail:** `public/og.png` (1536 x 1024, 3:2).
+
+**Gallery order:** baseline workspace, two-session repair, organizer review, honest blocked state (`public/devpost/gallery-baseline.png`, `gallery-repair.png`, `gallery-review.png`, `gallery-blocked.png`).
+
+## Additional information fields
+
+**Submitter type:** Entrant must confirm Individual, Team of Individuals, or Organization.
+
+**Country:** Entrant must confirm the legal country of residence; do not infer this from the demo location.
+
+**App status:** New. The repository history begins September 1, 2026, within the submission period.
+
+**Testing instructions:** Open the live URL as a top-level page in ChatGPT desktop's in-app browser. Wait for the “10 WebMCP tools are ready” status, then use the Agent quick start prompt. No account or credentials are required. The browser agent may read the schedule, record a fictional disruption, propose a repair, and request approval. Only the organizer interface can apply a proposal. Reset demo restores a clean fictional workspace.
+
+**Public code repository:** https://github.com/jozai193/runline-webmcp
+
+**Tested agent/client:** ChatGPT desktop in-app browser with native WebMCP. Do not claim the current external Chrome session as a native WebMCP test because its WebMCP testing feature was not enabled.
+
+**AI tools used:** OpenAI Codex and ChatGPT for implementation assistance, testing, design iteration, documentation and demo scripting; OpenAI image generation for the original social card; Deepgram Aura-2 for synthetic demo narration. The running application contains no embedded LLM or simulated agent transcript.
+
+**Learning level:** Suggested answer: Significant. Entrant must confirm.
+
+**Career AI value:** Suggested answer: Yes. Entrant must confirm.
+
 ## Project story — draft copy
 
 ### Inspiration
 
 Live events run on shared commitments: speakers, rooms, capacity, timing, and moments that cannot move. A delayed speaker turns a tidy schedule into a coordination problem. We wanted a browser agent that could work on those real constraints alongside the organizer, instead of offering suggestions in a disconnected chat window.
+
+### Why WebMCP
+
+This workflow needs more than a chatbot that describes a schedule. The agent must discover the application's domain operations, read the same saved state the organizer sees, use stable IDs, preserve hard constraints, and hand a concrete proposal back to the human interface. WebMCP makes Runline's existing web application the shared workspace: there is no duplicated agent dashboard, separate MCP server, or simulated transcript to keep in sync.
 
 ### What it does
 
@@ -54,7 +82,7 @@ Production account/role authorization, stricter human-presence approval, rate li
 
 ### AI assistance
 
-The implementation, documentation and test suite were built with AI coding assistance. The social preview artwork was AI-generated, and the local video draft uses a generic Microsoft synthetic voice with an on-screen disclosure. The running application does not contain an embedded LLM or simulated AI conversation: it exposes actual WebMCP tools to a compatible browser agent.
+The implementation, documentation and test suite were built with OpenAI Codex and ChatGPT assistance. The social preview artwork was AI-generated, and the local video draft uses Deepgram Aura-2 Orion synthetic narration with an on-screen disclosure. The running application does not contain an embedded LLM or simulated AI conversation: it exposes actual WebMCP tools to a compatible browser agent.
 
 ## Strategy against the rubric
 
@@ -71,7 +99,7 @@ WebMCP leverage is the first tie-breaker in the published rules. Prioritize a sh
 
 - Submission deadline: September 3, 2026, 1:00 p.m. PDT — **September 4, 2026, 1:30 a.m. IST**. Aim to finalize the previous day, with time for public-access checks.
 - Published judging criteria: WebMCP Leverage, Execution, Potential Impact, and Creativity & Ambition, equally weighted.
-- Ten winning projects receive $3,500 cash each plus the listed sponsor benefits. Recheck the official prize details before relying on individual sponsor terms.
+- Ten winning projects receive $3,000 from OpenAI plus the sponsor benefits listed in the official rules. Recheck the official prize details before relying on individual sponsor terms.
 - Required materials include a working live app, a public source repository with license and complete source/run instructions, and a public narrated YouTube demonstration strictly under three minutes.
 - Treat the formal rules and latest organizer update as authoritative over the older FAQ text suggesting video was not required.
 - Complete required team acceptance and finalize the entry; a saved Devpost draft is not a submission.
