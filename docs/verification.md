@@ -8,7 +8,9 @@ Date: September 1, 2026, IST. Environment: Windows, Node 24.14.1. This separates
 - 22 HTTP integration checks passed against the local Worker/D1 runtime: creation and cookie flags, isolated workspaces, saved disruption/proposal/approval, persistence across requests, exact-one-winner concurrent updates, origin/header checks, missing/unknown cookie handling, invalid JSON, bounded request size and content type enforcement.
 - TypeScript strict checking passed.
 - Source lint passed, including form-control labels and React correctness checks. This is not a formal accessibility audit.
-- The browser's native tool-availability notification listed all ten Runline tools on the local preview. No native tool was executed during this discovery observation.
+- The public app registered all ten Runline tools in the intended in-app browser. Every tool was executed against an isolated fictional workspace. Read tools returned the saved event; `report_disruption` changed only constraints; `propose_repair` returned a two-session, zero-conflict repair; `request_approval` left the schedule pending; and the organizer interface applied it. Reload preserved the repair and `get_activity` returned the matching saved actions.
+- A newer organizer lock made an existing proposal stale. Both the review UI and native `request_approval` rejected it. A separate auditorium-closure scenario covering the locked opening returned one unresolved conflict and rejected the approval request. A custom proposal was accepted for review, while a custom move of the locked opening was rejected.
+- Browser interaction checks covered desktop board/agenda switching, search, session add/edit/remove confirmations, event settings, reset, undo and concurrent-change protection, malformed and valid JSON import, all three export controls, activity history, proposal comparison/review, Escape-close behavior, and a 390 x 844 phone viewport. The phone page had no document-level horizontal overflow; its schedule board remained intentionally scrollable. No browser console errors were present at the final clean sample.
 - Production Worker build passed after upgrading vulnerable starter dependencies.
 - The same 22 HTTP checks passed against the built production Worker, with a healthy response afterward. A local Wrangler unread-request-body failure was reproduced and addressed by bounded body consumption before rejection; all origin, size and content-type checks remain enforced. Related upstream report: https://github.com/cloudflare/workers-sdk/issues/15203.
 - `npm install` audit reported zero known vulnerabilities after the pinned dependency updates and a scoped esbuild override. This is not a full security audit and does not guarantee absence of vulnerabilities.
@@ -16,20 +18,12 @@ Date: September 1, 2026, IST. Environment: Windows, Node 24.14.1. This separates
 
 ## Remaining release gates
 
-Native browser tool **execution** and visual/interactive browser QA have **not** been performed. The handler tests use the real command engine, and native registration was observed, but neither proves the complete browser workflow. Browser testing was requested as a permission question and remains awaiting an explicit user response.
+- Listen through the narrated draft and review motion/pacing before any upload. Container, duration, dimensions, audio stream/levels and an eight-frame visual contact sheet were checked; this is not an auditory or frame-by-frame review.
+- Publish the complete MIT-licensed source in a public repository and verify it from a signed-out session after the user chooses the repository/account.
+- Upload the approved, narrated video publicly (not unlisted), then verify playback from a signed-out session.
+- Recheck the final Devpost entry, entrant/team eligibility, public URLs and required acknowledgements; submit only after explicit user approval.
 
-Before public submission, run the following in an isolated sample workspace:
-
-1. Confirm ten native tools are discoverable and can execute in the intended browser.
-2. Drive the delayed-speaker workflow through the actual agent and confirm review remains pending until organizer approval.
-3. Change a lock while a proposal is pending; verify the UI and native tool both expose staleness.
-4. Confirm unsupported-browser messaging is accurate and manual controls work.
-5. Check keyboard focus, dialog escape/return focus, all input labels, narrow-screen layout and scrollable board.
-6. Exercise session creation/edit/removal, settings, reset, import validation, each download, undo and reload.
-7. Verify the deployed app uses the configured D1 binding and trusted social-preview origin.
-8. Confirm public access and a fresh isolated sample without owner login after public-release approval.
-
-No production traffic load test, penetration test, formal accessibility audit, calendar-client compatibility matrix or real-event pilot has been performed.
+The export controls were exercised and source/unit checks cover their generated formats, but the in-app browser did not expose downloaded files for byte-level browser verification. No production traffic load test, penetration test, formal accessibility audit, calendar-client compatibility matrix, unsupported-browser matrix or real-event pilot has been performed.
 
 ## Known scope limitations
 

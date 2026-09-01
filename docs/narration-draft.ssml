@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
+  <p>An event schedule is a network of promises. When one speaker is late, moving one box can break three others. <sub alias="Run line">Runline</sub> lets an organizer and their browser agent repair the same schedule together, with the human keeping the final say.</p>
+  <break time="1500ms"/>
+  <p>There is no chatbot embedded here. Runline exposes ten <sub alias="web em see pee">WebMCP</sub> tools to the browser agent. It reads the real room capacities, speaker availability, lunch break, and protected sessions. Mira is delayed until two. The agent records that fact. The live schedule has not changed.</p>
+  <break time="1500ms"/>
+  <p>The agent asks for a repair that favors fewer changes. Runline searches valid placements and exposes the cost: which sessions move, how far their times shift, and whether rooms change. This is a bounded search, not a claim of global optimality. Before and after are visible, and every hard constraint is checked.</p>
+  <break time="1500ms"/>
+  <p>The agent requests approval. That does not apply the plan. The organizer reviews the specific changes and accepts them through the review interface. The server checks the latest version again before saving, so an older proposal cannot overwrite a newer edit. Now the board and the history agree.</p>
+  <break time="1500ms"/>
+  <p>Some changes should not be automated away. If the opening is protected and its room is unavailable, Runline shows the blocker. It does not silently move the keynote or pretend the task succeeded. The organizer must change the constraint or make a new decision.</p>
+  <break time="1500ms"/>
+  <p>This working demo includes persistent isolated workspaces, custom events, exports, undo, and regression tests. WebMCP makes the agent part of the tool the organizer already uses. <sub alias="Run line">Runline</sub>. Your event, in sync.</p>
+</speak>

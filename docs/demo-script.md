@@ -1,6 +1,12 @@
 # Runline demo — target 2 minutes 40 seconds
 
-Status: recording plan, not a completed video. Record actual app and native WebMCP calls; do not substitute an animated or fabricated transcript. The final public YouTube upload must have audio and stay strictly under three minutes.
+Status: reviewed local video draft, not publicly uploaded. `outputs/demo/runline-demo.mp4` is 135.60 seconds, 1920 x 1080 H.264 with AAC narration. Its app footage and screenshots came from the real public browser session, and its response excerpts came from saved native WebMCP results. Editorial overlays explicitly identify held frames, edited pacing, fictional data, synthetic narration and the automated organizer-interface test. The final public YouTube upload must stay public, include audio, and remain under three minutes.
+
+## Prepared narration draft
+
+A local synthetic narration draft has been rendered from `docs/narration-draft.ssml` using the installed Microsoft Zira Desktop voice. It is 133.60 seconds long, leaving room for short pauses and a closing card within the planned 160-second video. WAV and MP3 drafts are under the ignored `outputs/demo` directory. The voice is a generic installed system voice, not an imitation of the entrant.
+
+The narration was matched to genuine browser footage and the synthetic voice is disclosed throughout the video. The video container, duration, streams, dimensions, audio levels and representative frames were checked. An auditory listen-through and frame-by-frame playback review remain required before publication. The provided `scripts/render-narration.ps1` can render a new take in Windows PowerShell; it refuses to overwrite an existing draft. `scripts/assemble-demo.mjs` rebuilds the edit from saved evidence and also refuses to overwrite. No public upload has occurred.
 
 ## Before recording
 
