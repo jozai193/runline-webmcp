@@ -1,6 +1,6 @@
 # WebMCP Challenge submission pack
 
-Prepared September 1, 2026, India time. This is a draft; nothing has been submitted or publicly published on the entrant's behalf.
+Prepared September 1, 2026, India time. The live demo is public. The source repository, video and Devpost entry remain unpublished drafts; no final submission has been made on the entrant's behalf.
 
 ## Submission fields
 

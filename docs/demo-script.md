@@ -1,4 +1,4 @@
-# Runline demo — target 2 minutes 40 seconds
+# Runline demo — final draft 2 minutes 15.60 seconds
 
 Status: reviewed local video draft, not publicly uploaded. `outputs/demo/runline-demo-final.mp4` is 135.60 seconds, 1920 x 1080 H.264 with AAC narration. Its app footage and screenshots came from the real public browser session, and its response excerpts came from saved native WebMCP results. Editorial overlays explicitly identify held frames, edited pacing, fictional data, synthetic narration and the automated organizer-interface test. The final public YouTube upload must stay public, include audio, and remain under three minutes.
 
