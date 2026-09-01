@@ -16,6 +16,9 @@ if (path.basename(audioName) !== audioName || !audioName.endsWith('.wav')) {
   throw new Error('The narration must be a simple .wav filename.');
 }
 const target = path.join(output, targetName);
+const narrationProvider = audioName.includes('deepgram')
+  ? 'Deepgram Aura-2 Orion synthetic narration'
+  : 'Microsoft Zira synthetic narration';
 if (fs.existsSync(target))
   throw new Error('Preserve the existing video before making another take.');
 const evidence = JSON.parse(
@@ -170,8 +173,7 @@ fs.writeFileSync(
       originalFootage:
         'Browser CDP screencast and screenshots; not synthesized UI',
       nativeEvidence: 'native-webmcp-evidence.json',
-      disclosure:
-        'Generic Microsoft Zira narration. Agent operated organizer UI for a fictional test. Tool response excerpts are editorial overlays, not a simulated chat interface.',
+      disclosure: `${narrationProvider}. Agent operated organizer UI for a fictional test. Tool response excerpts are editorial overlays, not a simulated chat interface.`,
       timeline,
     },
     null,
