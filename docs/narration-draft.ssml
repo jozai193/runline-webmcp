@@ -10,5 +10,5 @@
   <break time="1500ms"/>
   <p>Some changes should not be automated away. If the opening is protected and its room is unavailable, Runline shows the blocker. It does not silently move the keynote or pretend the task succeeded. The organizer must change the constraint or make a new decision.</p>
   <break time="1500ms"/>
-  <p>This working demo includes persistent isolated workspaces, custom events, exports, undo, and regression tests. WebMCP makes the agent part of the tool the organizer already uses. <sub alias="Run line">Runline</sub>. Your event, in sync.</p>
+  <p>This working demo includes persistent isolated workspaces, custom events, exports, undo, and regression tests. <sub alias="web em see pee">WebMCP</sub> makes the agent part of the tool the organizer already uses. <sub alias="Run line">Runline</sub>. Your event, in sync.</p>
 </speak>

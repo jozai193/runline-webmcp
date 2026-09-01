@@ -8,8 +8,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const output = path.join(root, 'outputs/demo');
 const captures = path.join(output, 'captures');
 const targetName = process.argv[2] || 'runline-demo-draft.mp4';
+const audioName = process.argv[3] || 'narration-draft.wav';
 if (path.basename(targetName) !== targetName || !targetName.endsWith('.mp4')) {
   throw new Error('The output must be a simple .mp4 filename.');
+}
+if (path.basename(audioName) !== audioName || !audioName.endsWith('.wav')) {
+  throw new Error('The narration must be a simple .wav filename.');
 }
 const target = path.join(output, targetName);
 if (fs.existsSync(target))
@@ -186,7 +190,7 @@ const result = spawnSync(
     '-i',
     'demo-frames.ffconcat',
     '-i',
-    'narration-draft.wav',
+    audioName,
     '-vf',
     'scale=1440:970:force_original_aspect_ratio=decrease,pad=1920:1080:20:90:color=0x193B30,setsar=1,subtitles=demo-overlays.ass',
     '-af',

@@ -1,6 +1,7 @@
 param(
   [string]$Voice = 'Microsoft Zira Desktop',
-  [ValidateRange(-10, 10)][int]$Rate = -1
+  [ValidateRange(-10, 10)][int]$Rate = -1,
+  [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9._-]*\.wav$')][string]$OutputName = 'narration-draft.wav'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -8,7 +9,7 @@ Add-Type -AssemblyName System.Speech
 $project = Split-Path -Parent $PSScriptRoot
 $scriptPath = Join-Path $project 'docs\narration-draft.ssml'
 $outputDirectory = Join-Path $project 'outputs\demo'
-$outputPath = Join-Path $outputDirectory 'narration-draft.wav'
+$outputPath = Join-Path $outputDirectory $OutputName
 if (Test-Path -LiteralPath $outputPath) {
   throw 'A narration draft already exists. Preserve or rename it before rendering another take.'
 }
