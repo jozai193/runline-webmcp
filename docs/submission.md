@@ -12,7 +12,7 @@ Prepared September 1, 2026, India time. The live demo is public. The source repo
 
 **Live app URL:** https://runline-control-room.advikmjevoor.chatgpt.site
 
-**Source URL:** Use the approved public GitHub repository containing this complete source and MIT license.
+**Source URL:** https://github.com/jozai193/runline-webmcp
 
 **Video URL:** Use the verified public narrated YouTube video under three minutes. Do not submit this script as a video.
 
@@ -84,13 +84,13 @@ Sources: [overview](https://webmcp.devpost.com/), [official rules](https://webmc
 - [ ] Entrant confirms eligibility, team members and the public project name/license.
 - [x] Explicit permission for browser testing and capture; native WebMCP path verified in the target browser.
 - [x] Keyboard, narrow-screen, modal, export and reload checks completed within the documented scope.
-- [ ] Owner approves public source publication. Public app access is already approved.
+- [x] Owner approves public source publication. Public app access is already approved.
 - [x] Public app loads without owner-only access restrictions; each judge gets a fresh sample.
-- [ ] Public repository includes all application source, migration, tests, README and license; no secrets or private test records.
+- [x] Public repository includes all application source, migration, tests, README and license; no secrets or private test records. Anonymous clone, install, tests, lint, typecheck and build passed.
 - [ ] Public narrated YouTube demo exists, is under three minutes, and plays signed out.
 - [ ] Final app, source and video URLs are entered into Devpost; draft prose updated to match demonstrated behavior.
 - [ ] Team invitations accepted and required questions answered accurately by the entrant.
 - [ ] User approves final Devpost submission; submit and verify confirmation.
 - [ ] Record the submitted source revision and freeze required materials through judging.
 
-No repository publication, YouTube upload, eligibility attestation or final submission has been performed by preparing this pack.
+The source repository is public and verified. No YouTube upload, eligibility attestation or final Devpost submission has been performed.

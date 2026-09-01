@@ -1,17 +1,17 @@
 # Publication handoff
 
-Nothing described here has been uploaded yet. Use these exact local artifacts only after approval.
+The source repository described here is published and verified. The video and Devpost entry remain unpublished.
 
 ## Public source repository
 
-- Suggested repository name: `runline-webmcp`
+- Repository: https://github.com/jozai193/runline-webmcp
 - Description: `A human-agent event schedule control room powered by native WebMCP tools.`
 - Visibility: public
 - License: MIT, already included
 - Source: `outputs/runline-public-source.zip`, produced from the recorded commit with `git archive`
 - Topics: `webmcp`, `hackathon`, `event-scheduling`, `human-in-the-loop`, `cloudflare-workers`, `react`
 
-After publication, clone or download the repository without authentication. Confirm `README.md`, `LICENSE`, all application source, Drizzle migration, tests and lockfile are available. Run `npm ci`, `npm test`, `npm run typecheck`, `npm run lint` and `npm run build`. Do not upload `outputs`, `.wrangler`, environment files or browser evidence.
+Anonymous HTTP access and a fresh unauthenticated clone were verified. `README.md`, `LICENSE`, all application source, the Drizzle migration, tests and lockfile are available. That clone passed `npm ci`, `npm test`, `npm run typecheck`, `npm run lint` and `npm run build`. Generated outputs, `.wrangler`, environment files and browser evidence were not published.
 
 ## Public YouTube video
 
