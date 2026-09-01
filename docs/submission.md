@@ -10,7 +10,7 @@ Prepared September 1, 2026, India time. This is a draft; nothing has been submit
 
 **Built with:** WebMCP, TypeScript, React, Vinext, Cloudflare Workers, D1, Drizzle, Tailwind CSS, shadcn/Base UI.
 
-**Live app URL:** Use the verified public deployment, not the owner-only preview.
+**Live app URL:** https://runline-control-room.advikmjevoor.chatgpt.site
 
 **Source URL:** Use the approved public GitHub repository containing this complete source and MIT license.
 
@@ -54,7 +54,7 @@ Production account/role authorization, stricter human-presence approval, rate li
 
 ### AI assistance
 
-The implementation, documentation and test suite were built with AI coding assistance. The social preview artwork was AI-generated. The running application does not contain an embedded LLM or simulated AI conversation: it exposes actual WebMCP tools to a compatible browser agent.
+The implementation, documentation and test suite were built with AI coding assistance. The social preview artwork was AI-generated, and the local video draft uses a generic Microsoft synthetic voice with an on-screen disclosure. The running application does not contain an embedded LLM or simulated AI conversation: it exposes actual WebMCP tools to a compatible browser agent.
 
 ## Strategy against the rubric
 
@@ -82,10 +82,10 @@ Sources: [overview](https://webmcp.devpost.com/), [official rules](https://webmc
 ## Release checklist — must complete before finalization
 
 - [ ] Entrant confirms eligibility, team members and the public project name/license.
-- [ ] Explicit permission for browser testing and capture; native WebMCP path verified in the target browser.
-- [ ] Keyboard, narrow-screen, modal, export and reload checks completed.
-- [ ] Owner approves public app access and public source publication.
-- [ ] Public app loads without owner-only access restrictions; each judge gets a fresh sample.
+- [x] Explicit permission for browser testing and capture; native WebMCP path verified in the target browser.
+- [x] Keyboard, narrow-screen, modal, export and reload checks completed within the documented scope.
+- [ ] Owner approves public source publication. Public app access is already approved.
+- [x] Public app loads without owner-only access restrictions; each judge gets a fresh sample.
 - [ ] Public repository includes all application source, migration, tests, README and license; no secrets or private test records.
 - [ ] Public narrated YouTube demo exists, is under three minutes, and plays signed out.
 - [ ] Final app, source and video URLs are entered into Devpost; draft prose updated to match demonstrated behavior.
