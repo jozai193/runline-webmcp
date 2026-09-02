@@ -4,6 +4,8 @@
 
 Runline is not an embedded chatbot. Its ten structured browser tools read the actual workspace, record disruptions, propose constraint-checked changes, and request organizer review. The organizer compares before/after, protects sessions, and records confirmation from every affected speaker before applying a proposal. A rejection searches for a distinct next-best option instead of immediately repeating the same plan.
 
+The same constraint model can coordinate a small campus program today: lecture halls, auditoriums, classrooms, and sports grounds are locations; matches, rehearsals, ceremonies, and workshops are scheduled sessions. Multi-day bookings, equipment, authenticated campus roles, and notifications remain future product work.
+
 **Live demo:** https://runline-control-room.advikmjevoor.chatgpt.site
 
 ## Try the story

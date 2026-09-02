@@ -96,9 +96,9 @@ hold('demo-04-current.png', section3Parts[1]);
 clip('demo-04-compare', section3Parts[2]);
 hold('demo-03-repair.png', section3Parts[3]);
 clip('demo-05-request', section4Parts[0]);
-hold('demo-05-review.png', section4Parts[1]);
-clip('demo-06-apply', section4Parts[2]);
-hold('demo-07-history.png', section4Parts[3]);
+hold('demo-05-consent-pending.png', section4Parts[1]);
+hold('demo-05-consent-confirmed.png', section4Parts[2]);
+hold('demo-06-consent-applied.png', section4Parts[3]);
 clip('demo-08-blocked', section5Parts[0]);
 hold('demo-08-blocked.png', section5Parts[1]);
 hold('demo-09-export.png', section6Parts[0]);
@@ -169,7 +169,7 @@ caption(
   'Body',
   `ACTUAL RESPONSE EXCERPT\npropose_repair\n\nstatus: ${repair.result.data.status}\napplied: ${repair.result.data.applied}\nremainingConflicts: 0\n\n${repair.result.data.metrics.moved} sessions moved\n${repair.result.data.metrics.roomChanges} room changes\n${repair.result.data.metrics.shiftedMinutes} minutes total shift\n${repair.result.data.metrics.lockedProtected} locks protected\n\nBounded search.\nNot a global optimum.`,
 );
-caption(end3, end4, 'Heading', 'Approval is\na separate step.');
+caption(end3, end4, 'Heading', 'Consent before\nthe schedule changes.');
 caption(
   end3,
   section4CopySplit,
@@ -180,7 +180,7 @@ caption(
   section4CopySplit,
   end4,
   'Body',
-  'ORGANIZER-INTERFACE TEST\n\nApply these changes\n\nServer revalidates\nthe latest workspace.\n\nThe saved activity\nand board agree.\n\nLabels identify the\ninterface, not a person.',
+  'AFFECTED-SPEAKER GATE\n\nEvery moved session’s\nspeaker must confirm.\n\nA decline searches for\na distinct alternative.\n\nApply unlocks only\nafter everyone agrees.\n\nResponses are recorded,\nnot identity-verified.',
 );
 caption(end4, end5, 'Heading', 'Know when\nto stop.');
 caption(
@@ -194,7 +194,7 @@ caption(
   end5,
   end6,
   'Body',
-  'Persistent demo workspaces\nCustom event import\nCSV / ICS / JSON exports\nUndo and activity history\n\n45 domain tests\n22 HTTP checks\nNative browser QA\n\nYour agent proposes.\nYou keep the final say.',
+  'Persistent demo workspaces\nCustom event import\nCSV / ICS / JSON exports\nUndo and activity history\n\n47 domain tests\n25 HTTP checks\nNative browser QA\n\nYour agent proposes.\nPeople affected confirm.\nYou keep the final say.',
 );
 const ass = `[Script Info]\nScriptType: v4.00+\nPlayResX: 1920\nPlayResY: 1080\nWrapStyle: 2\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Brand,Segoe UI,26,&H00DEECD4,&H00FFFFFF,&H00000000,&H00000000,-1,0,0,0,100,100,1,0,1,0,0,7,25,20,20,1\nStyle: Heading,Segoe UI,38,&H00DEECD4,&H00FFFFFF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,0,0,7,1490,20,115,1\nStyle: Body,Consolas,23,&H00F5F5F0,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,1490,12,270,1\nStyle: Footer,Segoe UI,16,&H00CDD8C6,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,0,0,2,20,20,4,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n${lines.join('\n')}\n`;
 fs.writeFileSync(path.join(output, 'demo-overlays.ass'), ass);

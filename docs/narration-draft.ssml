@@ -6,7 +6,7 @@
   <break time="1500ms"/>
   <p>The agent asks for a repair that favors fewer changes. Runline searches valid placements and exposes the cost: which sessions move, how far their times shift, and whether rooms change. This is a bounded search, not a claim of global optimality. Before and after are visible, and every hard constraint is checked.</p>
   <break time="1500ms"/>
-  <p>The agent requests approval. That does not apply the plan. The organizer reviews the specific changes and accepts them through the review interface. The server checks the latest version again before saving, so an older proposal cannot overwrite a newer edit. Now the board and the history agree.</p>
+  <p>The agent requests review. Nothing is applied. Every speaker whose session moves must confirm. A decline sends Runline to a distinct alternative. Only after all affected speakers agree can the organizer apply the plan, and the server rechecks the latest version and constraints before saving.</p>
   <break time="1500ms"/>
   <p>Some changes should not be automated away. If the opening is protected and its room is unavailable, Runline shows the blocker. It does not silently move the keynote or pretend the task succeeded. The organizer must change the constraint or make a new decision.</p>
   <break time="1500ms"/>

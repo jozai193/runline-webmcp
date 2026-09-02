@@ -22,13 +22,13 @@ Anonymous HTTP access and a fresh unauthenticated clone were verified. `README.m
 
 Suggested description:
 
-> Runline repairs live event schedules through a shared organizer and browser-agent workflow. Ten native WebMCP tools read the real schedule, record disruptions, propose constraint-checked changes and request approval. The organizer compares the plan and applies it through a separate interface step.
+> Runline repairs live event schedules through a shared organizer and browser-agent workflow. Ten native WebMCP tools read the real schedule, record disruptions, propose constraint-checked changes and request review. Every speaker whose session moves must confirm before the organizer can apply; a decline produces a distinct alternative.
 >
 > Live demo: https://runline-control-room.advikmjevoor.chatgpt.site
 >
 > Source: [insert verified public repository URL]
 >
-> Built for the WebMCP Challenge. The event and people shown are fictional. The demonstration uses genuine browser captures and native tool results, edited for pacing. The generic Microsoft synthetic narration and automated organizer-interface test are disclosed on screen. Interface actor labels are not identity verification.
+> Built for the WebMCP Challenge. The event and people shown are fictional. The demonstration uses genuine browser captures and native tool results, edited for pacing, with disclosed Deepgram Aura-2 synthetic narration. The demo records confirmations but does not authenticate speaker identity or send notifications.
 
 Suggested chapters:
 
@@ -36,7 +36,7 @@ Suggested chapters:
 00:00 One disruption, cascading consequences
 00:19 Native WebMCP tools read real state
 00:44 A two-session repair with visible trade-offs
-01:10 Approval is a separate organizer step
+01:10 Affected speakers confirm before apply
 01:34 An impossible change stays blocked
 01:54 Persistence, exports, and closing
 ```

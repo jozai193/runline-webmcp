@@ -58,6 +58,8 @@ Locked sessions stay protected. Every applied repair is revalidated against room
 
 The demo includes persistent browser-isolated workspaces, session editing, event configuration, custom JSON import, CSV/ICS/JSON exports and an activity trail. All sample people and events are fictional.
 
+The underlying model is reusable beyond conferences. A small college can represent lecture halls, auditoriums, classrooms, and sports grounds as locations, then schedule matches, rehearsals, ceremonies, and workshops with the same capacity, availability, conflict, protection, consent, and alternative-plan workflow. Runline does not claim to be a complete campus booking system; multi-day recurrence, equipment, authenticated campus roles, and notifications are future work.
+
 ### How we built it
 
 Ten imperative WebMCP tools expose real application operations in the page. They use the same state transitions as the React interface, backed by a Cloudflare Worker and D1. Browser agents need neither a separate MCP server nor an application-owned LLM key.
@@ -90,7 +92,7 @@ The implementation, documentation and test suite were built with OpenAI Codex an
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | WebMCP Leverage          | Native discovery and execution on the same visible workspace; the agent hands a concrete plan to the organizer and affected-speaker consent gate. |
 | Execution                | Persisted workflow, distinct retries, real constraint and consent validation, stale-write rejection, isolated workspaces and accessible controls. |
-| Potential Impact         | A specific operational problem in events; explain the cost of cascading schedule changes without inventing customer traction.                     |
+| Potential Impact         | A focused live-event problem with a credible path to campus venues such as auditoriums, classrooms and sports grounds—without inventing traction. |
 | Creativity & Ambition    | A shared decision surface, custom agent proposals, affected-party consent, hard constraints, human locks and honest blocked states.               |
 
 WebMCP leverage is the first tie-breaker in the published rules. Prioritize a short, convincing native-browser collaboration sequence over adding unrelated features. No strategy guarantees a win.

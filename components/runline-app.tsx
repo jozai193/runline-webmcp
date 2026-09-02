@@ -1852,10 +1852,11 @@ export default function RunlineApp() {
                 </div>
                 <div>
                   <span>03</span>
-                  <strong>Make the call</strong>
+                  <strong>Confirm with everyone affected</strong>
                   <p>
-                    Protect a session, recalculate, and approve only the changes
-                    you want.
+                    Record each moved session’s speaker response. A decline
+                    searches for a distinct alternative; apply unlocks only
+                    after everyone confirms.
                   </p>
                 </div>
               </div>
@@ -1903,6 +1904,13 @@ export default function RunlineApp() {
                   bounded; it may not find every feasible solution or the global
                   optimum. It never applies a blocked proposal. Human edits can
                   introduce conflicts, which stay visible until resolved.
+                </p>
+                <p>
+                  The same model can coordinate a campus program: lecture halls,
+                  auditoriums, classrooms, and sports grounds become rooms;
+                  matches, rehearsals, ceremonies, and workshops become
+                  sessions. This demo remains intentionally focused on a
+                  single-day live event.
                 </p>
               </section>
               <section>
