@@ -105,12 +105,52 @@ hold('demo-09-export.png', section6Parts[0]);
 hold('demo-10-clean-baseline.png', section6Parts[1]);
 const total = timeline.reduce((sum, f) => sum + f.duration, 0);
 if (total >= 180) throw new Error('Video must be shorter than three minutes.');
+
+// Earlier CDP captures contain JPEG bytes despite their `.png` filenames,
+// while Playwright writes real PNGs. The concat demuxer selects one decoder
+// for the whole image sequence, so normalize non-JPEG inputs before encoding.
+const normalizedCaptures = path.join(output, 'normalized-captures');
+fs.mkdirSync(normalizedCaptures, { recursive: true });
+const normalizedFiles = new Map();
+for (const file of new Set(timeline.map((frame) => frame.file))) {
+  const source = path.join(captures, file);
+  const magic = fs.readFileSync(source).subarray(0, 3);
+  const isJpeg = magic[0] === 0xff && magic[1] === 0xd8 && magic[2] === 0xff;
+  if (isJpeg) {
+    normalizedFiles.set(file, source);
+    continue;
+  }
+  const normalized = path.join(
+    normalizedCaptures,
+    `${String(normalizedFiles.size).padStart(3, '0')}-${path.parse(file).name}.jpg`,
+  );
+  const conversion = spawnSync(
+    'ffmpeg',
+    [
+      '-hide_banner',
+      '-loglevel',
+      'error',
+      '-y',
+      '-i',
+      source,
+      '-q:v',
+      '2',
+      normalized,
+    ],
+    { stdio: 'inherit' },
+  );
+  if (conversion.status !== 0)
+    throw new Error(
+      `Could not normalize ${file}: ${conversion.error ?? conversion.status}`,
+    );
+  normalizedFiles.set(file, normalized);
+}
 const concat = timeline.flatMap((f) => [
-  `file '${path.join(captures, f.file).replaceAll('\\', '/')}'`,
+  `file '${normalizedFiles.get(f.file).replaceAll('\\', '/')}'`,
   `duration ${f.duration.toFixed(6)}`,
 ]);
 concat.push(
-  `file '${path.join(captures, timeline.at(-1).file).replaceAll('\\', '/')}'`,
+  `file '${normalizedFiles.get(timeline.at(-1).file).replaceAll('\\', '/')}'`,
 );
 fs.writeFileSync(
   path.join(output, 'demo-frames.ffconcat'),

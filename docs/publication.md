@@ -15,7 +15,7 @@ Anonymous HTTP access and a fresh unauthenticated clone were verified. `README.m
 
 ## Public YouTube video
 
-- File: `outputs/demo/runline-demo-final.mp4`
+- File: `outputs/demo/runline-demo-consent-final.mp4`
 - Title: `Runline — A Human-Agent Event Control Room with WebMCP`
 - Visibility: public, not unlisted
 - Audience: the account owner must choose the accurate YouTube audience declaration
@@ -26,7 +26,7 @@ Suggested description:
 >
 > Live demo: https://runline-control-room.advikmjevoor.chatgpt.site
 >
-> Source: [insert verified public repository URL]
+> Source: https://github.com/jozai193/runline-webmcp
 >
 > Built for the WebMCP Challenge. The event and people shown are fictional. The demonstration uses genuine browser captures and native tool results, edited for pacing, with disclosed Deepgram Aura-2 synthetic narration. The demo records confirmations but does not authenticate speaker identity or send notifications.
 
@@ -34,14 +34,14 @@ Suggested chapters:
 
 ```text
 00:00 One disruption, cascading consequences
-00:19 Native WebMCP tools read real state
-00:44 A two-session repair with visible trade-offs
-01:10 Affected speakers confirm before apply
-01:34 An impossible change stays blocked
-01:54 Persistence, exports, and closing
+00:15 Native WebMCP tools read real state
+00:36 A two-session repair with visible trade-offs
+00:58 Affected speakers confirm before apply
+01:18 An impossible change stays blocked
+01:34 Persistence, exports, and closing
 ```
 
-After upload, open the public URL in a signed-out session. Confirm 1080p playback, audible narration, readable response excerpts, exact 2:15.60 duration and public visibility. Do not use an unlisted link for the challenge.
+After upload, open the public URL in a signed-out session. Confirm 1080p playback, audible narration, readable response excerpts, exact 1:49.30 duration and public visibility. Do not use an unlisted link for the challenge.
 
 ## Devpost
 

@@ -74,7 +74,7 @@ This is a hackathon demonstration, not a production event-management service. Do
 
 The included Sites configuration declares the logical D1 binding `DB`. The platform provisions the real database; do not hardcode database credentials. Build output is a Cloudflare Worker under `dist/server` with static assets. Set trusted runtime variable `RUNLINE_PUBLIC_ORIGIN` to the deployed origin for absolute social previews. Local metadata defaults to `http://localhost:3000`; it never trusts forwarded host headers. No secret is required by this application.
 
-The hosted demo and source repository are public and were verified from credential-free sessions on September 2, 2026. The narrated video must be refreshed for the new speaker-confirmation flow, then publicly uploaded to YouTube and verified signed out before the hackathon submission is final.
+The hosted demo and source repository are public and were verified from credential-free sessions on September 2, 2026. A refreshed local video candidate demonstrates the speaker-confirmation flow; it still requires a human listen-through, public YouTube upload and signed-out playback check before the hackathon submission is final.
 
 ## Project materials
 

@@ -1,6 +1,6 @@
 # Verification record
 
-Date: September 2, 2026, IST. Environment: Windows, Node 24.14.1. This separates completed checks from required release gates.
+Date: September 3, 2026, IST. Environment: Windows, Node 24.14.1. This separates completed checks from required release gates.
 
 ## Completed automated checks
 
@@ -11,15 +11,17 @@ Date: September 2, 2026, IST. Environment: Windows, Node 24.14.1. This separates
 - The public app registered all ten Runline tools in the intended in-app browser. Every tool was executed against an isolated fictional workspace. Read tools returned the saved event; `report_disruption` changed only constraints; `propose_repair` returned a two-session, zero-conflict repair; `request_approval` left the schedule pending; and the organizer interface applied it. Reload preserved the repair and `get_activity` returned the matching saved actions.
 - A newer organizer lock made an existing proposal stale. Both the review UI and native `request_approval` rejected it. A separate auditorium-closure scenario covering the locked opening returned one unresolved conflict and rejected the approval request. A custom proposal was accepted for review, while a custom move of the locked opening was rejected.
 - Browser interaction checks covered desktop board/agenda switching, search, session add/edit/remove confirmations, event settings, reset, undo and concurrent-change protection, malformed and valid JSON import, all three export controls, activity history, proposal comparison/review, Escape-close behavior, and a 390 x 844 phone viewport. The phone page had no document-level horizontal overflow; its schedule board remained intentionally scrollable. No browser console errors were present at the final clean sample.
-- The complete MIT-licensed source is public at https://github.com/jozai193/runline-webmcp. Anonymous HTTP access and a fresh unauthenticated clone were verified. That clone passed `npm ci` with zero known vulnerabilities, all 45 tests, lint, typecheck and the production build.
+- A fresh unauthenticated in-memory browser profile completed the current public workflow from sample creation through a two-session proposal, 0/2 confirmation gate, both affected-speaker confirmations, apply and persisted repaired state. A separate fresh profile produced the auditorium-closure blocked state used in the gallery.
+- The complete MIT-licensed source is public at https://github.com/jozai193/runline-webmcp. Anonymous HTTP access and a fresh unauthenticated clone were verified. That clone passed `npm ci` with zero known vulnerabilities, all 47 tests, lint, typecheck and the production build.
 - Production Worker build passed after upgrading vulnerable starter dependencies.
 - The current 25 HTTP checks passed against both the local Worker/D1 runtime and the public September 2 deployment, with a healthy response afterward. A local Wrangler unread-request-body failure was reproduced and addressed by bounded body consumption before rejection; all origin, size and content-type checks remain enforced. Related upstream report: https://github.com/cloudflare/workers-sdk/issues/15203.
 - `npm install` audit reported zero known vulnerabilities after the pinned dependency updates and a scoped esbuild override. This is not a full security audit and does not guarantee absence of vulnerabilities.
 - Drizzle schema generation passed with the scoped override and reported no missing migrations.
+- The local consent-focused video candidate is 109.30 seconds with 1920 x 1080 H.264 video and 48 kHz mono AAC audio. Silence detection at -42 dB found no interval of 0.7 seconds or longer. A nine-frame contact sheet plus full-resolution consent and applied frames were visually checked after normalizing mixed browser screenshot formats.
 
 ## Remaining release gates
 
-- Listen through the narrated draft and review motion/pacing before any upload. Container, duration, dimensions, audio stream/levels and an eight-frame visual contact sheet were checked; this is not an auditory or frame-by-frame review.
+- Listen through the narrated candidate and review motion/pacing before any upload. Container, duration, dimensions, audio stream, silence profile and representative frames were checked; this is not an auditory or frame-by-frame review.
 - Upload the approved, narrated video publicly (not unlisted), then verify playback from a signed-out session.
 - Recheck the final Devpost entry, entrant/team eligibility, public URLs and required acknowledgements; submit only after explicit user approval.
 

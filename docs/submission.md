@@ -1,6 +1,6 @@
 # WebMCP Challenge submission pack
 
-Prepared September 2, 2026, India time. The live demo and source repository are public. The video and Devpost entry remain unpublished drafts; no final submission has been made on the entrant's behalf.
+Prepared September 3, 2026, India time. The live demo and source repository are public. The video and Devpost entry remain unpublished drafts; no final submission has been made on the entrant's behalf.
 
 ## Submission fields
 
@@ -18,7 +18,7 @@ Prepared September 2, 2026, India time. The live demo and source repository are 
 
 **Thumbnail:** `public/og.png` (1536 x 1024, 3:2).
 
-**Gallery order:** baseline workspace, two-session repair, organizer review, honest blocked state (`public/devpost/gallery-baseline.png`, `gallery-repair.png`, `gallery-review.png`, `gallery-blocked.png`).
+**Gallery order:** baseline workspace, two-session repair, affected-speaker confirmation gate, honest blocked state (`public/devpost/gallery-baseline.png`, `gallery-repair.png`, `gallery-review.png`, `gallery-blocked.png`).
 
 ## Additional information fields
 
@@ -118,7 +118,8 @@ Sources: [overview](https://webmcp.devpost.com/), [official rules](https://webmc
 - [x] Public app loads without owner-only access restrictions; each judge gets a fresh sample.
 - [x] Public repository includes all application source, migration, tests, README and license; no secrets or private test records. Anonymous clone, install, tests, lint, typecheck and build passed.
 - [ ] Public narrated YouTube demo exists, is under three minutes, and plays signed out.
-- [ ] Final app, source and video URLs are entered into Devpost; draft prose updated to match demonstrated behavior.
+- [x] Draft prose and gallery assets match the demonstrated consent and blocked-state behavior.
+- [ ] Final app, source and video URLs are entered into Devpost.
 - [ ] Team invitations accepted and required questions answered accurately by the entrant.
 - [ ] User approves final Devpost submission; submit and verify confirmation.
 - [ ] Record the submitted source revision and freeze required materials through judging.
