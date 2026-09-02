@@ -1583,6 +1583,74 @@ h1 > span {
   color: #a0ab94;
   text-decoration: line-through;
 }
+.consent-gate {
+  display: grid;
+  gap: 10px;
+  border: 1px solid #d9e2cf;
+  border-radius: 8px;
+  padding: 13px;
+  background: #fbfcf8;
+}
+.consent-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #587449;
+}
+.consent-heading strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.consent-heading p,
+.consent-disclosure {
+  margin-top: 4px;
+  color: #849178;
+  font-size: 9px;
+  line-height: 1.55;
+}
+.consent-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #e5eadf;
+  padding-top: 10px;
+}
+.consent-row > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+.consent-row strong {
+  font-size: 11px;
+  font-weight: 550;
+}
+.consent-row small,
+.consent-row > span {
+  color: #87947b;
+  font-size: 9px;
+}
+.consent-row.confirmed > span {
+  color: #5f844c;
+  text-transform: capitalize;
+}
+.consent-row.declined > span {
+  color: #a86751;
+  text-transform: capitalize;
+}
+.consent-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.consent-actions button {
+  min-height: 30px;
+  padding: 5px 9px;
+  font-size: 9px;
+}
+.consent-disclosure {
+  border-top: 1px solid #e5eadf;
+  padding-top: 9px;
+}
 .export-options {
   display: grid;
   gap: 10px;

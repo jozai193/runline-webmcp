@@ -37,6 +37,11 @@ const proposalSummary = (p: Proposal) => ({
     room_id: c.roomId,
   })),
   remainingConflicts: p.conflicts.length,
+  speakerConsents: (p.speakerConsents ?? []).map((consent) => ({
+    speaker_id: consent.speakerId,
+    session_ids: consent.sessionIds,
+    status: consent.status,
+  })),
   metrics: p.metrics,
   note: p.note,
   applied: p.status === 'applied',
@@ -91,7 +96,7 @@ export function buildTools(adapter: ToolAdapter): ToolDefinition[] {
             .filter((p) => p.status === 'pending')
             .map((p) => ({ id: p.id, stale: p.baseRevision !== s.revision })),
           approvalPolicy:
-            'Only the organizer can apply a proposal through the review interface.',
+            'Only the organizer can apply a proposal through the review interface, and every affected speaker must be confirmed first.',
         };
       },
     ),
@@ -118,19 +123,17 @@ export function buildTools(adapter: ToolAdapter): ToolDefinition[] {
         return {
           total: matches.length,
           nextOffset: offset + limit < matches.length ? offset + limit : null,
-          sessions: matches
-            .slice(offset, offset + limit)
-            .map((x) => ({
-              id: x.id,
-              title: x.title,
-              speaker_ids: x.speakerIds,
-              speakers: sessionNames(s, x),
-              room_id: x.roomId,
-              start: timeLabel(x.start),
-              duration: x.duration,
-              attendance: expectedAttendance(s, x),
-              locked: x.locked,
-            })),
+          sessions: matches.slice(offset, offset + limit).map((x) => ({
+            id: x.id,
+            title: x.title,
+            speaker_ids: x.speakerIds,
+            speakers: sessionNames(s, x),
+            room_id: x.roomId,
+            start: timeLabel(x.start),
+            duration: x.duration,
+            attendance: expectedAttendance(s, x),
+            locked: x.locked,
+          })),
         };
       },
     ),
@@ -216,7 +219,7 @@ export function buildTools(adapter: ToolAdapter): ToolDefinition[] {
     ),
     tool(
       'propose_repair',
-      'Run bounded constraint search and save a repair proposal for the current schedule. Choose a trade-off objective. Never applies changes. Inspect the result; a blocked proposal must not be approved.',
+      'Run bounded constraint search and save a repair proposal for the current schedule. Earlier plans for this revision are excluded, so repeated calls can return a distinct next-best option. Never applies changes. Inspect the result; a blocked proposal must not be approved.',
       schema(
         {
           objective: {
@@ -285,7 +288,7 @@ export function buildTools(adapter: ToolAdapter): ToolDefinition[] {
     ),
     tool(
       'inspect_proposal',
-      'Read a saved proposal, current validity, changes, and remaining conflicts. A stale proposal must be regenerated. Only a pending, current, conflict-free proposal with changes is approvable.',
+      'Read a saved proposal, current validity, changes, speaker-confirmation status, and remaining conflicts. A stale proposal must be regenerated. Applying also requires every affected speaker to be confirmed in the organizer interface.',
       schema(
         {
           proposal_id: string('Exact proposal ID returned by a proposal tool.'),
@@ -310,7 +313,7 @@ export function buildTools(adapter: ToolAdapter): ToolDefinition[] {
     ),
     tool(
       'request_approval',
-      'Bring a feasible proposal to the organizer review panel. This requests human approval; it NEVER applies a proposal. Tell the user which changes await their approval and stop before claiming completion.',
+      'Bring a feasible proposal to the organizer review panel. This requests review; it NEVER applies a proposal or records speaker consent. Tell the user which changes and confirmations await action, then stop before claiming completion.',
       schema(
         {
           proposal_id: string('A pending, current, conflict-free proposal ID.'),
@@ -331,7 +334,7 @@ export function buildTools(adapter: ToolAdapter): ToolDefinition[] {
           proposalId,
           scheduleChanged: false,
           nextStep:
-            'Organizer reviews and selects Apply these changes in the app.',
+            'Organizer records confirmation from every affected speaker, then reviews and selects Apply these changes in the app.',
         };
       },
     ),
@@ -344,14 +347,12 @@ export function buildTools(adapter: ToolAdapter): ToolDefinition[] {
         const s = await adapter.read();
         return {
           revision: s.revision,
-          actions: s.audit
-            .slice(0, 5)
-            .map((a) => ({
-              at: a.at,
-              actor: a.actor,
-              action: a.action,
-              detail: a.detail,
-            })),
+          actions: s.audit.slice(0, 5).map((a) => ({
+            at: a.at,
+            actor: a.actor,
+            action: a.action,
+            detail: a.detail,
+          })),
         };
       },
     ),

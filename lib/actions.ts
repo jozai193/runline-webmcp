@@ -5,6 +5,7 @@ import {
   createProposal,
   findConflicts,
   repairSchedule,
+  speakerConsentsFor,
 } from './engine.ts';
 import { createSample } from './sample.ts';
 import {
@@ -45,6 +46,8 @@ export function transition(previous: Workspace, input: unknown): Workspace {
       'This action is reserved for the organizer interface. Agents can propose changes, not approve them.',
     );
   const state = structuredClone(previous);
+  for (const proposal of state.proposals)
+    proposal.speakerConsents ??= speakerConsentsFor(state, proposal.changes);
   let detail = '',
     changesSchedule = false;
   switch (action) {
@@ -188,6 +191,37 @@ export function transition(previous: Workspace, input: unknown): Workspace {
       detail = 'Organizer dismissed the proposal. Schedule unchanged.';
       break;
     }
+    case 'record_speaker_consent': {
+      const p = state.proposals.find((p) => p.id === id(command.id));
+      if (!p || p.status !== 'pending')
+        throw new DomainError('NOT_FOUND', 'Pending proposal not found.');
+      if (p.baseRevision !== state.revision)
+        throw new DomainError(
+          'STALE_PROPOSAL',
+          'The schedule changed before confirmation. Generate a fresh repair.',
+        );
+      const speakerId = id(command.speakerId),
+        consent = p.speakerConsents.find(
+          (item) => item.speakerId === speakerId,
+        ),
+        decision = text(command.decision, 'Decision', 16);
+      if (!consent)
+        throw new DomainError(
+          'UNKNOWN_TARGET',
+          'This speaker is not affected by the proposal.',
+        );
+      if (decision !== 'confirmed' && decision !== 'declined')
+        throw new DomainError('INVALID_INPUT', 'Choose confirmed or declined.');
+      consent.status = decision;
+      consent.recordedAt = new Date().toISOString();
+      const speaker = state.speakers.find((item) => item.id === speakerId);
+      if (decision === 'declined') {
+        p.status = 'rejected';
+        detail = `${speaker?.name ?? speakerId} declined the proposed session change. The proposal was rejected.`;
+      } else
+        detail = `${speaker?.name ?? speakerId} confirmation was recorded for the proposal.`;
+      break;
+    }
     case 'apply_proposal': {
       const p = state.proposals.find((p) => p.id === id(command.id));
       if (!p || p.status !== 'pending')
@@ -210,6 +244,11 @@ export function transition(previous: Workspace, input: unknown): Workspace {
         throw new DomainError(
           'UNSAFE_PROPOSAL',
           'The proposal still violates constraints and cannot be applied.',
+        );
+      if (p.speakerConsents.some((consent) => consent.status !== 'confirmed'))
+        throw new DomainError(
+          'SPEAKER_CONSENT_REQUIRED',
+          'Every affected speaker must confirm before the organizer can apply this proposal.',
         );
       state.undo = {
         sessions: structuredClone(state.sessions),

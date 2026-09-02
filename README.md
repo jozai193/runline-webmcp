@@ -2,7 +2,7 @@
 
 **Your event, in sync.** A WebMCP-powered control room where an organizer and a browser agent repair the same live event schedule together.
 
-Runline is not an embedded chatbot. Its ten structured browser tools read the actual workspace, record disruptions, propose constraint-checked changes, and request organizer review. The organizer compares before/after, protects sessions, and explicitly applies or rejects a proposal.
+Runline is not an embedded chatbot. Its ten structured browser tools read the actual workspace, record disruptions, propose constraint-checked changes, and request organizer review. The organizer compares before/after, protects sessions, and records confirmation from every affected speaker before applying a proposal. A rejection searches for a distinct next-best option instead of immediately repeating the same plan.
 
 **Live demo:** https://runline-control-room.advikmjevoor.chatgpt.site
 
@@ -11,8 +11,9 @@ Runline is not an embedded chatbot. Its ten structured browser tools read the ac
 1. Open the app. Every browser receives an isolated fictional Common Ground 2026 event: 12 sessions, 3 rooms, and two locked sessions.
 2. Select **Report a disruption**. The preset says Mira Sen is unavailable from 09:00 until 14:00. Record it.
 3. Select **Find a repair** with **Move fewer sessions**. Compare the proposed schedule with the current one. Nothing has moved yet.
-4. Review the changes, then **Apply these changes**. Inspect activity history or undo the repair.
-5. Reset the demo and try a room closure or an attendance spike. An impossible request stays visibly blocked.
+4. Open **Collect confirmations**. Record a response from every affected speaker, then **Apply these changes**. Inspect activity history or undo the repair.
+5. Alternatively, choose **Show next-best option** or decline a speaker confirmation. Runline rejects that plan and searches for a different feasible trade-off at the same schedule revision.
+6. Reset the demo and try a room closure or an attendance spike. An impossible request stays visibly blocked.
 
 For the actual agent workflow, open Runline as a top-level page in a compatible WebMCP browser. When the app says its ten tools are registered, use:
 
@@ -46,14 +47,14 @@ The API smoke suite creates its own isolated sample workspaces. It never touches
 
 The React interface and WebMCP tools share the same command/validation engine. Mutations go through a same-origin Worker route and a version-guarded D1 update; proposals cannot overwrite newer organizer edits. `revision` tracks schedule/constraint changes while `version` guards every saved action, including review requests.
 
-- `lib/engine.ts`: conflict detection and bounded deterministic repair search.
-- `lib/actions.ts`: authoritative state transitions, lock protection, approval, stale-write guards, and undo.
+- `lib/engine.ts`: conflict detection, bounded deterministic repair search, and exclusion of previously rejected plans.
+- `lib/actions.ts`: authoritative state transitions, speaker-confirmation gate, lock protection, approval, stale-write guards, and undo.
 - `lib/webmcp.ts`: ten tool schemas and real execute handlers; no fake agent transcript.
 - `lib/storage.ts` and `app/api/workspace/route.ts`: isolated workspaces, cookie token hashing, persistence and atomic writes.
 - `components/`: schedule board, proposal comparison, forms, activity, help and exports.
 - `tests/`: domain, WebMCP adapter and real HTTP/D1 regression checks.
 
-The search respects capacity, speaker and room conflicts, unavailable intervals, event hours, protected lunch, turnover, and locks. It explores at most 4,500 candidates with bounded depth/beam width. It is not an LLM or a globally optimal solver; a search failure is not proof that no feasible schedule exists. An organizer can adjust constraints or a browser agent can submit its own validated move proposal.
+The search respects capacity, speaker and room conflicts, unavailable intervals, event hours, protected lunch, turnover, and locks. It explores at most 4,500 candidates with bounded depth/beam width. At the same schedule revision, the signatures of earlier proposals are excluded so a retry must produce a distinct option or honestly report that the bounded search found no alternative. It is not an LLM or a globally optimal solver; a search failure is not proof that no feasible schedule exists. An organizer can adjust constraints or a browser agent can submit its own validated move proposal.
 
 ## Data and security scope
 
@@ -62,8 +63,9 @@ This is a hackathon demonstration, not a production event-management service. Do
 - Each browser gets an opaque 256-bit workspace token in an HttpOnly, SameSite=Strict cookie, Secure on HTTPS. D1 stores its SHA-256 hash, not the token.
 - Workspaces expire seven days after their last saved action. Expired rows are inaccessible and are physically cleaned up when a new workspace is created; deletion is not a scheduled exact-time guarantee.
 - No third-party analytics, notifications, bookings, payments, or attendee records are implemented.
-- The provided WebMCP surface deliberately has no apply, unlock, reset or delete tool. `request_approval` is not approval.
-- Actor labels identify the calling interface, not an authenticated person. A caller with the workspace cookie and direct API/DOM access can use organizer controls. This is a cooperative approval workflow, **not a cryptographic human-presence boundary against a malicious agent**.
+- The provided WebMCP surface deliberately has no apply, unlock, reset, consent-recording or delete tool. `request_approval` is not approval.
+- Every speaker whose session would change must be marked confirmed before the server accepts apply. A decline rejects the proposal and starts a search for another distinct option.
+- The demo records speaker responses in the shared workspace; it does not authenticate the respondent or send them a message. Actor labels identify the calling interface, not an authenticated person. A caller with the workspace cookie and direct API/DOM access can use organizer controls. This is a cooperative consent workflow, **not a cryptographic identity or human-presence boundary against a malicious agent**.
 - CSRF checks, payload limits, input validation and atomic version guards are enforced server-side. Public production use would additionally need rate limiting, account authorization, retention jobs, abuse controls and operational monitoring.
 
 ## Deployment

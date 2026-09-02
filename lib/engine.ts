@@ -8,6 +8,7 @@ import type {
   Proposal,
   Schedule,
   Session,
+  SpeakerConsent,
   Workspace,
 } from './domain.ts';
 
@@ -136,6 +137,36 @@ export function getChanges(before: Session[], after: Session[]): Change[] {
   });
 }
 
+export function proposalSignature(changes: Change[]) {
+  return changes
+    .toSorted((a, b) => a.sessionId.localeCompare(b.sessionId))
+    .map((change) => `${change.sessionId}/${change.start}/${change.roomId}`)
+    .join('|');
+}
+
+export function speakerConsentsFor(
+  state: Schedule,
+  changes: Change[],
+): SpeakerConsent[] {
+  const required = new Map<string, Set<string>>();
+  for (const change of changes) {
+    const session = state.sessions.find((item) => item.id === change.sessionId);
+    for (const speakerId of session?.speakerIds ?? []) {
+      const sessions = required.get(speakerId) ?? new Set<string>();
+      sessions.add(change.sessionId);
+      required.set(speakerId, sessions);
+    }
+  }
+  return [...required.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([speakerId, sessionIds]) => ({
+      speakerId,
+      sessionIds: [...sessionIds].sort(),
+      status: 'pending' as const,
+      recordedAt: null,
+    }));
+}
+
 export function applyMoves(schedule: Schedule, moves: Move[]): Session[] {
   if (new Set(moves.map((m) => m.sessionId)).size !== moves.length)
     throw new DomainError(
@@ -191,6 +222,7 @@ export function createProposal(
     changes,
     beforeConflicts: findConflicts(state).length,
     conflicts: findConflicts({ ...state, sessions }),
+    speakerConsents: speakerConsentsFor(state, changes),
     status: 'pending',
     metrics: {
       moved: changes.length,
@@ -246,6 +278,16 @@ export function repairSchedule(
       performance.now() - started,
     );
   type Node = { sessions: Session[]; conflicts: Conflict[]; score: number };
+  const excluded = new Set(
+    state.proposals
+      .filter(
+        (proposal) =>
+          proposal.baseRevision === state.revision && proposal.changes.length,
+      )
+      .map((proposal) => proposalSignature(proposal.changes)),
+  );
+  const allowed = (sessions: Session[]) =>
+    !excluded.has(proposalSignature(getChanges(state.sessions, sessions)));
   let best: Node = {
     sessions: state.sessions,
     conflicts: initialConflicts,
@@ -296,17 +338,20 @@ export function repairSchedule(
             score: score(state, sessions, conflicts, objective),
           };
           next.push(candidate);
-          if (candidate.score < best.score) best = candidate;
+          if (candidate.score < best.score && allowed(sessions))
+            best = candidate;
           if (evaluated >= 4500) break outer;
         }
     }
     next.sort((a, b) => a.score - b.score);
     if (best.conflicts.length === 0 || next.length === 0) break;
-    beam = next.slice(0, 12);
+    beam = next.filter((candidate) => candidate.conflicts.length).slice(0, 12);
   }
   const note =
     best.conflicts.length === 0
-      ? 'A feasible repair found by bounded search. Review the trade-offs before applying; this is not a guarantee of global optimality.'
+      ? excluded.size
+        ? 'A distinct feasible alternative found after excluding earlier proposals. Review the trade-offs and collect speaker confirmation before applying.'
+        : 'A feasible repair found by bounded search. Review the trade-offs and collect speaker confirmation before applying; this is not a guarantee of global optimality.'
       : 'No complete repair found within the search budget. No changes will be applied. Review the remaining conflicts, room limits, or locked sessions.';
   return createProposal(
     state,

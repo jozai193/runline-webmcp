@@ -28,7 +28,7 @@ Prepared September 1, 2026, India time. The live demo and source repository are 
 
 **App status:** New. The repository history begins September 1, 2026, within the submission period.
 
-**Testing instructions:** Open the live URL as a top-level page in ChatGPT desktop's in-app browser. Wait for the “10 WebMCP tools are ready” status, then use the Agent quick start prompt. No account or credentials are required. The browser agent may read the schedule, record a fictional disruption, propose a repair, and request approval. Only the organizer interface can apply a proposal. Reset demo restores a clean fictional workspace.
+**Testing instructions:** Open the live URL as a top-level page in ChatGPT desktop's in-app browser. Wait for the “10 WebMCP tools are ready” status, then use the Agent quick start prompt. No account or credentials are required. The browser agent may read the schedule, record a fictional disruption, propose a repair, and request approval. In the organizer interface, open **Collect confirmations**, confirm every affected fictional speaker, then apply. Rejecting a plan or declining a speaker response produces a distinct next-best option when the bounded search finds one. Reset demo restores a clean fictional workspace.
 
 **Public code repository:** https://github.com/jozai193/runline-webmcp
 
@@ -52,7 +52,7 @@ This workflow needs more than a chatbot that describes a schedule. The agent mus
 
 ### What it does
 
-Runline is an event scheduling control room with a shared human-agent workflow. Report a delayed speaker, unavailable room, or attendance spike. The browser agent reads the actual schedule and constraints, then requests a repair or submits its own move proposal. The organizer compares the proposed schedule with the saved one and explicitly approves or rejects it.
+Runline is an event scheduling control room with a shared human-agent workflow. Report a delayed speaker, unavailable room, or attendance spike. The browser agent reads the actual schedule and constraints, then requests a repair or submits its own move proposal. The organizer compares the proposed schedule with the saved one. Every speaker whose session would move must confirm before apply; a decline or organizer rejection searches for a distinct next-best plan.
 
 Locked sessions stay protected. Every applied repair is revalidated against room and speaker availability, capacity, event hours, lunch and turnover. New edits invalidate old proposals, and undo preserves the recorded disruption so the original problem does not disappear from the history.
 
@@ -62,23 +62,23 @@ The demo includes persistent browser-isolated workspaces, session editing, event
 
 Ten imperative WebMCP tools expose real application operations in the page. They use the same state transitions as the React interface, backed by a Cloudflare Worker and D1. Browser agents need neither a separate MCP server nor an application-owned LLM key.
 
-A bounded deterministic search generates repair candidates; the browser agent supplies intent, chooses trade-offs, and can author custom proposals. The server performs the final validation and atomic version-guarded write. The tool surface intentionally stops at requesting approval and contains no apply or unlock tool.
+A bounded deterministic search generates repair candidates; the browser agent supplies intent, chooses trade-offs, and can author custom proposals. Proposal signatures are remembered per schedule revision, so a rejected retry cannot simply return the same set of moves. The server performs the final validation, verifies every affected speaker is confirmed, and makes an atomic version-guarded write. The tool surface intentionally stops at requesting approval and contains no apply, consent-recording or unlock tool.
 
 ### Challenges
 
-The difficult part was making human and agent edits coexist safely. A proposal can become obsolete between generation and approval. Runline separates workspace versions from schedule revisions, makes stale proposals visible, and rejects conflicting concurrent writes. Another challenge was being honest about optimization: bounded search can fail to find a solution, so the UI exposes remaining blockers rather than describing every result as a success.
+The difficult part was making human and agent edits coexist safely. A proposal can become obsolete between generation and approval, and “try again” is useless if a deterministic solver repeats the same answer. Runline separates workspace versions from schedule revisions, makes stale proposals visible, rejects conflicting concurrent writes, and excludes prior same-revision plan signatures. Another challenge was translating shared impact into a clear consent rule without overstating identity: the demo records responses, while authenticated speaker approval remains future work.
 
 ### Accomplishments
 
-The project implements an end-to-end persisted repair workflow, with regression checks for disruptions, hard constraints, locks, approval, undo, stale writes, workspace isolation, exports and the real WebMCP handler chain. A delayed-speaker fixture produces a two-session repair without moving either locked session. The interface shows every proposed change and its trade-offs before applying anything.
+The project implements an end-to-end persisted repair workflow, with regression checks for disruptions, hard constraints, locks, distinct alternatives, affected-speaker consent, undo, stale writes, workspace isolation, exports and the real WebMCP handler chain. A delayed-speaker fixture produces a two-session repair without moving either locked session. The interface shows every proposed change and its trade-offs, blocks apply until all affected speakers confirm, and turns a decline into another plan search.
 
 ### What we learned
 
-WebMCP is most useful when tools are designed around the application’s domain, not around arbitrary clicks. Small structured reads, stable IDs, explicit errors and carefully separated proposal/approval steps make the agent’s work inspectable by a person. The browser context becomes shared working state rather than another data copy to synchronize.
+WebMCP is most useful when tools are designed around the application’s domain, not around arbitrary clicks. Small structured reads, stable IDs, explicit errors and carefully separated proposal, consent and apply steps make the agent’s work inspectable by the people it affects. The browser context becomes shared working state rather than another data copy to synchronize.
 
 ### What's next
 
-Production account/role authorization, stricter human-presence approval, rate limiting, scheduled retention cleanup, multi-day events, external calendar synchronization and broader solver evaluations are future work, not claims about this demo.
+Authenticated speaker accounts or signed confirmation links, outbound notifications, production role authorization, stricter human-presence approval, rate limiting, scheduled retention cleanup, multi-day events, external calendar synchronization and broader solver evaluations are future work, not claims about this demo.
 
 ### AI assistance
 
@@ -86,12 +86,12 @@ The implementation, documentation and test suite were built with OpenAI Codex an
 
 ## Strategy against the rubric
 
-| Criterion (equal weight) | Evidence to show                                                                                                                                         |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| WebMCP Leverage          | Native discovery and execution on the same visible workspace; an agent-created proposal followed by a human edit or approval.                            |
-| Execution                | Reliable persisted workflow, real constraint validation, stale-write rejection, isolated workspaces, useful errors, accessible controls, and clear demo. |
-| Potential Impact         | A specific operational problem in events; explain the cost of cascading schedule changes without inventing customer traction.                            |
-| Creativity & Ambition    | A shared decision surface, custom agent proposals, hard constraints, human locks and honest blocked states.                                              |
+| Criterion (equal weight) | Evidence to show                                                                                                                                  |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WebMCP Leverage          | Native discovery and execution on the same visible workspace; the agent hands a concrete plan to the organizer and affected-speaker consent gate. |
+| Execution                | Persisted workflow, distinct retries, real constraint and consent validation, stale-write rejection, isolated workspaces and accessible controls. |
+| Potential Impact         | A specific operational problem in events; explain the cost of cascading schedule changes without inventing customer traction.                     |
+| Creativity & Ambition    | A shared decision surface, custom agent proposals, affected-party consent, hard constraints, human locks and honest blocked states.               |
 
 WebMCP leverage is the first tie-breaker in the published rules. Prioritize a short, convincing native-browser collaboration sequence over adding unrelated features. No strategy guarantees a win.
 

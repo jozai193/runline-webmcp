@@ -71,6 +71,12 @@ export interface Change extends Move {
   fromRoomId: string;
   title: string;
 }
+export interface SpeakerConsent {
+  speakerId: string;
+  sessionIds: string[];
+  status: 'pending' | 'confirmed' | 'declined';
+  recordedAt: string | null;
+}
 export interface Proposal {
   id: string;
   baseRevision: number;
@@ -81,6 +87,7 @@ export interface Proposal {
   changes: Change[];
   beforeConflicts: number;
   conflicts: Conflict[];
+  speakerConsents: SpeakerConsent[];
   metrics: {
     moved: number;
     shiftedMinutes: number;

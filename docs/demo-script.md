@@ -1,6 +1,6 @@
 # Runline demo — smooth final draft 1 minute 53.30 seconds
 
-Status: reviewed local video draft, not publicly uploaded. `outputs/demo/runline-demo-final-smooth.mp4` is 113.30 seconds, 1920 x 1080 H.264 with normalized 48 kHz AAC narration. Its app footage and screenshots came from the real public browser session, and its response excerpts came from saved native WebMCP results. Editorial overlays explicitly identify held frames, edited pacing, fictional data, Deepgram synthetic narration and the automated organizer-interface test. The final public YouTube upload must stay public, include audio, and remain under three minutes.
+Status: reviewed local video draft, not publicly uploaded. It predates the affected-speaker confirmation gate and must be refreshed before publication. `outputs/demo/runline-demo-final-smooth.mp4` is 113.30 seconds, 1920 x 1080 H.264 with normalized 48 kHz AAC narration. Its app footage and screenshots came from the real public browser session, and its response excerpts came from saved native WebMCP results. Editorial overlays explicitly identify held frames, edited pacing, fictional data, Deepgram synthetic narration and the automated organizer-interface test. The final public YouTube upload must stay public, include audio, demonstrate the current consent flow, and remain under three minutes.
 
 ## Prepared narration draft
 
@@ -32,9 +32,9 @@ Show `propose_repair`, inspect the returned proposal, compare Current and Propos
 
 ## 1:25–1:55 — human agency is the point
 
-Show `request_approval`, pending status, then manually review and apply. Show zero conflicts and the saved activity entry.
+Show `request_approval`, pending status, then open **Collect confirmations**. Confirm each affected fictional speaker before manually applying. Optionally decline once to show Runline produce a distinct next-best option, then confirm the replacement plan. Show zero conflicts and the saved activity entry.
 
-“The agent requests approval. That does not apply the plan. I review these specific changes and accept them here. The server checks the latest version again before saving, so an older proposal cannot overwrite a newer edit. Now the board and the history agree.”
+“The agent requests review. That does not apply the plan. Each speaker whose session changes must confirm, and a decline sends Runline to the next distinct option. Once every affected speaker agrees, I apply it here. The server checks the latest version, constraints and confirmations again before saving. Now the board and the history agree.”
 
 ## 1:55–2:20 — prove a limit instead of hiding it
 
@@ -52,7 +52,7 @@ Show CSV/ICS/JSON exports and return to the board. End on the app's title/social
 
 - Actual browser tool names and at least one successful tool response.
 - A proposal appearing in the same app the human edits.
-- Pending state before a real organizer approval.
+- Pending state, affected-speaker confirmations, and the disabled apply state before every confirmation is recorded.
 - Applied state and persisted activity afterward.
 - One blocked constraint or stale-proposal case.
 

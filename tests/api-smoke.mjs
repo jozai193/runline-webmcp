@@ -8,7 +8,10 @@ async function request(url, options) {
   // This also keeps the HTTP test harness from leaking unread response streams.
   const response = await fetch(url, options);
   const body = await response.text();
-  return new Response(body, { status: response.status, headers: response.headers });
+  return new Response(body, {
+    status: response.status,
+    headers: response.headers,
+  });
 }
 async function post(body, extra = {}) {
   return request(origin + '/api/workspace', {
@@ -72,6 +75,25 @@ response = await post({
   id: state.proposals[0].id,
 });
 check('agent cannot approve', response.status === 400);
+response = await post({
+  action: 'apply_proposal',
+  actor: 'human',
+  version: state.version,
+  id: state.proposals[0].id,
+});
+check('approval waits for affected speakers', response.status === 400);
+for (const consent of state.proposals[0].speakerConsents) {
+  response = await post({
+    action: 'record_speaker_consent',
+    actor: 'human',
+    version: state.version,
+    id: state.proposals[0].id,
+    speakerId: consent.speakerId,
+    decision: 'confirmed',
+  });
+  check(`speaker confirmation saved for ${consent.speakerId}`, response.ok);
+  state = await response.json();
+}
 response = await post({
   action: 'apply_proposal',
   actor: 'human',

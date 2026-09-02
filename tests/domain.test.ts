@@ -33,6 +33,17 @@ const throws = (f: () => unknown, code: string) =>
   assert.throws(f, (e: unknown) =>
     Boolean(e && typeof e === 'object' && 'code' in e && e.code === code),
   );
+const confirmAll = (workspace: Workspace, proposalId: string) => {
+  let next = workspace;
+  const proposal = next.proposals.find((item) => item.id === proposalId)!;
+  for (const consent of proposal.speakerConsents)
+    next = act(next, 'record_speaker_consent', {
+      id: proposalId,
+      speakerId: consent.speakerId,
+      decision: 'confirmed',
+    });
+  return next;
+};
 
 void test('sample is valid, isolated, and conflict-free', () => {
   const a = createSample(),
@@ -209,17 +220,21 @@ void test('proposal creation leaves the schedule and revision untouched', () => 
   assert.equal(next.version, s.version + 1);
 });
 void test('human approval atomically commits valid changes and records history', () => {
-  const s = act(delayed(), 'propose_repair', { objective: 'fewest_changes' }),
-    next = act(s, 'apply_proposal', { id: s.proposals[0].id });
+  let s = act(delayed(), 'propose_repair', { objective: 'fewest_changes' });
+  const plan = s.proposals[0].id;
+  assert.ok(s.proposals[0].speakerConsents.length > 0);
+  throws(
+    () => act(s, 'apply_proposal', { id: plan }),
+    'SPEAKER_CONSENT_REQUIRED',
+  );
+  s = confirmAll(s, plan);
+  const next = act(s, 'apply_proposal', { id: plan });
   assert.equal(findConflicts(next).length, 0);
   assert.equal(next.proposals[0].status, 'applied');
   assert.equal(next.revision, s.revision + 1);
   assert.equal(next.audit[0].action, 'apply_proposal');
   assert.ok(next.undo);
-  throws(
-    () => act(next, 'apply_proposal', { id: s.proposals[0].id }),
-    'NOT_FOUND',
-  );
+  throws(() => act(next, 'apply_proposal', { id: plan }), 'NOT_FOUND');
 });
 void test('agent interface cannot directly approve, unlock, undo, reset or remove', () => {
   const s = act(delayed(), 'propose_repair', { objective: 'fewest_changes' });
@@ -230,6 +245,7 @@ void test('agent interface cannot directly approve, unlock, undo, reset or remov
     'reset',
     'remove_session',
     'save_session',
+    'record_speaker_consent',
   ])
     throws(
       () => act(s, action, { actor: 'agent', id: s.proposals[0].id }),
@@ -299,7 +315,10 @@ void test('approval request is not approval', () => {
 });
 void test('undo restores prior placements while preserving active disruptions', () => {
   const original = delayed(),
-    s = act(original, 'propose_repair', { objective: 'fewest_changes' }),
+    proposed = act(original, 'propose_repair', {
+      objective: 'fewest_changes',
+    }),
+    s = confirmAll(proposed, proposed.proposals[0].id),
     applied = act(s, 'apply_proposal', { id: s.proposals[0].id }),
     undo = act(applied, 'undo');
   assert.deepEqual(undo.sessions, original.sessions);
@@ -309,6 +328,7 @@ void test('undo restores prior placements while preserving active disruptions', 
 });
 void test('new edits disable undo so newer decisions cannot be overwritten', () => {
   let s = act(delayed(), 'propose_repair', { objective: 'fewest_changes' });
+  s = confirmAll(s, s.proposals[0].id);
   s = act(s, 'apply_proposal', { id: s.proposals[0].id });
   s = act(s, 'set_lock', { id: 'motion', locked: true });
   throws(() => act(s, 'undo'), 'STALE_UNDO');
@@ -318,6 +338,37 @@ void test('reject leaves schedule intact', () => {
     next = act(s, 'reject_proposal', { id: s.proposals[0].id });
   assert.deepEqual(next.sessions, s.sessions);
   assert.equal(next.proposals[0].status, 'rejected');
+});
+void test('rejected and current proposals are excluded from the next repair', () => {
+  let s = act(delayed(), 'propose_repair', { objective: 'fewest_changes' });
+  const first = s.proposals[0],
+    firstSignature = first.changes
+      .map((change) => `${change.sessionId}/${change.start}/${change.roomId}`)
+      .sort()
+      .join('|');
+  s = act(s, 'reject_proposal', { id: first.id });
+  s = act(s, 'propose_repair', { objective: 'fewest_changes' });
+  const second = s.proposals[0],
+    secondSignature = second.changes
+      .map((change) => `${change.sessionId}/${change.start}/${change.roomId}`)
+      .sort()
+      .join('|');
+  assert.equal(second.conflicts.length, 0);
+  assert.notEqual(secondSignature, firstSignature);
+  assert.match(second.note, /distinct feasible alternative/i);
+});
+void test('a speaker decline rejects the plan and preserves the schedule', () => {
+  const s = act(delayed(), 'propose_repair', { objective: 'fewest_changes' }),
+    plan = s.proposals[0],
+    next = act(s, 'record_speaker_consent', {
+      id: plan.id,
+      speakerId: plan.speakerConsents[0].speakerId,
+      decision: 'declined',
+    });
+  assert.deepEqual(next.sessions, s.sessions);
+  assert.equal(next.proposals[0].status, 'rejected');
+  assert.equal(next.proposals[0].speakerConsents[0].status, 'declined');
+  throws(() => act(next, 'apply_proposal', { id: plan.id }), 'NOT_FOUND');
 });
 void test('locked edits and removals are rejected', () => {
   const s = createSample();

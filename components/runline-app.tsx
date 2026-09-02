@@ -33,6 +33,7 @@ import {
   TriangleAlert,
   UnlockKeyhole,
   Upload,
+  UserCheck,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -52,7 +53,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScheduleBoard } from '@/components/schedule-board';
 import { useWorkspace } from '@/hooks/use-workspace';
-import { findConflicts } from '@/lib/engine';
+import { findConflicts, speakerConsentsFor } from '@/lib/engine';
 import { portableSchedule, scheduleCSV, scheduleICS } from '@/lib/export';
 import { roomName, timeLabel, timeValue, uid } from '@/lib/domain';
 import type { Disruption, EventInfo, Objective, Session } from '@/lib/domain';
@@ -129,11 +130,19 @@ export default function RunlineApp() {
     state.proposals.find((p) => p.id === reviewId && p.status === 'pending') ??
     state.proposals.find((p) => p.status === 'pending');
   const stale = Boolean(pending && pending.baseRevision !== state.revision);
-  const canApply = Boolean(
+  const pendingSpeakerConsents = pending
+    ? (pending.speakerConsents ?? speakerConsentsFor(state, pending.changes))
+    : [];
+  const canReview = Boolean(
     pending &&
     !stale &&
     pending.changes.length &&
     pending.conflicts.length === 0,
+  );
+  const canApply = Boolean(
+    canReview &&
+    pendingSpeakerConsents.length &&
+    pendingSpeakerConsents.every((consent) => consent.status === 'confirmed'),
   );
   const [hiddenProposal, setHiddenProposal] = useState<string | null>(null);
   const activePreview =
@@ -194,6 +203,57 @@ export default function RunlineApp() {
           ? 'No complete repair found. Review the blockers.'
           : 'Proposal ready. Your live schedule is unchanged.',
       );
+    }
+  };
+  const nextAfterRejection = async (proposalId: string, message: string) => {
+    const rejected = await run(
+      { action: 'reject_proposal', id: proposalId },
+      message,
+    );
+    if (!rejected) return;
+    const alternative = await run(
+      { action: 'propose_repair', objective },
+      'A distinct next option is ready. The rejected plan stays excluded.',
+      rejected.version,
+    );
+    if (alternative) {
+      setReviewId(alternative.proposals[0].id);
+      setPreview(true);
+      setModal(null);
+    }
+  };
+  const recordSpeakerConsent = async (
+    proposalId: string,
+    speakerId: string,
+    decision: 'confirmed' | 'declined',
+  ) => {
+    const speaker = state.speakers.find((item) => item.id === speakerId);
+    const next = await run(
+      {
+        action: 'record_speaker_consent',
+        id: proposalId,
+        speakerId,
+        decision,
+      },
+      decision === 'confirmed'
+        ? `${speaker?.name ?? speakerId} confirmation recorded.`
+        : `${speaker?.name ?? speakerId} declined. Looking for a different plan.`,
+      editVersion,
+    );
+    if (!next) return;
+    if (decision === 'confirmed') {
+      setEditVersion(next.version);
+      return;
+    }
+    const alternative = await run(
+      { action: 'propose_repair', objective },
+      'A distinct next option is ready. The declined plan stays excluded.',
+      next.version,
+    );
+    if (alternative) {
+      setReviewId(alternative.proposals[0].id);
+      setPreview(true);
+      setModal(null);
     }
   };
   const preset = (kind: Disruption['kind']) => {
@@ -631,6 +691,17 @@ export default function RunlineApp() {
                           </b>{' '}
                           total time shift
                         </span>
+                        <span>
+                          <b>
+                            {
+                              pendingSpeakerConsents.filter(
+                                (consent) => consent.status === 'confirmed',
+                              ).length
+                            }
+                            <small>/{pendingSpeakerConsents.length}</small>
+                          </b>{' '}
+                          speakers confirmed
+                        </span>
                       </div>
                       <div className="change-list">
                         {pending.changes.map((c) => (
@@ -671,14 +742,15 @@ export default function RunlineApp() {
                     </>
                   )}
                   <div className="proposal-actions">
-                    {canApply && (
+                    {canReview && (
                       <Button
                         className="wide-button"
                         size="lg"
                         disabled={busyOrLoading}
                         onClick={() => open('apply')}
                       >
-                        <Check size={16} /> Review & apply{' '}
+                        <UserCheck size={16} />{' '}
+                        {canApply ? 'Review & apply' : 'Collect confirmations'}{' '}
                         <ArrowUpRight size={14} />
                       </Button>
                     )}
@@ -693,25 +765,20 @@ export default function RunlineApp() {
                       ) : (
                         <RotateCcw size={14} />
                       )}{' '}
-                      {stale ? 'Recalculate proposal' : 'Try another trade-off'}
+                      {stale ? 'Recalculate proposal' : 'Show next-best option'}
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       disabled={busyOrLoading}
                       onClick={() =>
-                        void run(
-                          { action: 'reject_proposal', id: pending.id },
-                          'Proposal dismissed. The schedule is unchanged.',
-                        ).then((next) => {
-                          if (next) {
-                            setReviewId(null);
-                            setPreview(false);
-                          }
-                        })
+                        void nextAfterRejection(
+                          pending.id,
+                          'Proposal rejected. The schedule is unchanged.',
+                        )
                       }
                     >
-                      Dismiss proposal
+                      Reject & find next
                     </Button>
                   </div>
                   {!stale && pending.changes.length > 0 && (
@@ -937,7 +1004,7 @@ export default function RunlineApp() {
                           : modal === 'history'
                             ? 'Every decision, accounted for'
                             : modal === 'apply'
-                              ? 'Ready to make these changes?'
+                              ? 'Confirm every person affected'
                               : modal === 'undo'
                                 ? 'Restore the previous schedule?'
                                 : modal === 'remove'
@@ -960,7 +1027,7 @@ export default function RunlineApp() {
                           : modal === 'history'
                             ? 'Saved actions are shown newest first. Interface labels are not identity verification.'
                             : modal === 'apply'
-                              ? 'This is the human approval step. The server will recheck every constraint.'
+                              ? 'Every moved session needs recorded speaker confirmation before the organizer can apply it.'
                               : modal === 'undo'
                                 ? 'Active disruptions remain. Restoring the old times may bring back conflicts.'
                                 : modal === 'remove'
@@ -1477,7 +1544,13 @@ export default function RunlineApp() {
                   </strong>
                   <p>
                     {pending.metrics.lockedProtected} locked sessions stay
-                    protected.
+                    protected ·{' '}
+                    {
+                      pendingSpeakerConsents.filter(
+                        (consent) => consent.status === 'confirmed',
+                      ).length
+                    }
+                    /{pendingSpeakerConsents.length} speakers confirmed.
                   </p>
                 </div>
               </div>
@@ -1494,6 +1567,79 @@ export default function RunlineApp() {
                     </span>
                   </div>
                 ))}
+              </div>
+              <div className="consent-gate">
+                <div className="consent-heading">
+                  <UserCheck size={18} />
+                  <div>
+                    <strong>Speaker confirmation gate</strong>
+                    <p>
+                      Record each affected speaker’s answer. A decline rejects
+                      this plan and asks the solver for a distinct alternative.
+                    </p>
+                  </div>
+                </div>
+                {pendingSpeakerConsents.map((consent) => {
+                  const speaker = state.speakers.find(
+                      (item) => item.id === consent.speakerId,
+                    ),
+                    sessions = consent.sessionIds
+                      .map(
+                        (sessionId) =>
+                          state.sessions.find((item) => item.id === sessionId)
+                            ?.title ?? sessionId,
+                      )
+                      .join(', ');
+                  return (
+                    <div
+                      className={`consent-row ${consent.status}`}
+                      key={consent.speakerId}
+                    >
+                      <div>
+                        <strong>{speaker?.name ?? consent.speakerId}</strong>
+                        <small>{sessions}</small>
+                      </div>
+                      {consent.status === 'pending' ? (
+                        <div className="consent-actions">
+                          <Button
+                            size="sm"
+                            disabled={busyOrLoading}
+                            onClick={() =>
+                              void recordSpeakerConsent(
+                                pending.id,
+                                consent.speakerId,
+                                'confirmed',
+                              )
+                            }
+                          >
+                            Confirmed
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={busyOrLoading}
+                            onClick={() =>
+                              void recordSpeakerConsent(
+                                pending.id,
+                                consent.speakerId,
+                                'declined',
+                              )
+                            }
+                          >
+                            Declined
+                          </Button>
+                        </div>
+                      ) : (
+                        <span>{consent.status}</span>
+                      )}
+                    </div>
+                  );
+                })}
+                <p className="consent-disclosure">
+                  Demo limitation: Runline records the response in this shared
+                  workspace; it does not authenticate the speaker’s identity or
+                  send external notifications.
+                </p>
               </div>
               <p className="form-hint">
                 This updates your saved schedule only. Runline does not send
