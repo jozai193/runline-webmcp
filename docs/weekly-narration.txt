@@ -1,0 +1,1 @@
+Runline also handles repeating timetables. Load the fictional campus demo, choose a weekday, and make a class change for this week only or for all future weeks. A temporary change disappears automatically when the next week opens.

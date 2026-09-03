@@ -108,6 +108,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default=os.environ.get("DEEPGRAM_TTS_MODEL", DEFAULT_MODEL))
     parser.add_argument("--output", default="narration-deepgram-orion.wav")
+    parser.add_argument(
+        "--text-file",
+        help="Optional UTF-8 text file to render as one unpadded narration clip.",
+    )
     args = parser.parse_args()
 
     api_key = os.environ.get("DEEPGRAM_API_KEY", "").strip()
@@ -117,12 +121,32 @@ def main() -> None:
         raise SystemExit("--output must be a simple .wav filename")
 
     project = Path(__file__).resolve().parent.parent
-    source = project / "docs" / "narration-draft.ssml"
+    source = (
+        Path(args.text_file).resolve()
+        if args.text_file
+        else project / "docs" / "narration-draft.ssml"
+    )
     output_dir = project / "outputs" / "demo"
     target = output_dir / args.output
     output_dir.mkdir(parents=True, exist_ok=True)
     if target.exists():
         raise SystemExit(f"Refusing to overwrite existing narration: {target}")
+
+    if args.text_file:
+        text_clip = " ".join(source.read_text(encoding="utf-8").split())
+        if not text_clip:
+            raise SystemExit("--text-file must contain narration text")
+        target.write_bytes(
+            synthesize(
+                text_clip,
+                api_key=api_key,
+                model=args.model,
+                sample_rate=DEFAULT_SAMPLE_RATE,
+            )
+        )
+        print(f"Rendered Deepgram narration clip: {target}")
+        print("The credential remained environment-only; no public upload occurred.")
+        return
 
     paragraphs = narration_paragraphs(source)
     with tempfile.TemporaryDirectory(prefix="deepgram-narration-", dir=output_dir) as work:

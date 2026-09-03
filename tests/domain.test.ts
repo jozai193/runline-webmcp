@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createSample } from '../lib/sample.ts';
+import { createCampusSample, createSample } from '../lib/sample.ts';
 import { transition } from '../lib/actions.ts';
 import {
   applyMoves,
@@ -540,6 +540,23 @@ void test('timetable CSV creates a reusable weekly schedule', () => {
     [0, 1],
   );
   assert.equal(findConflicts(s).length, 0);
+});
+void test('campus demo is a conflict-free reusable five-day timetable', () => {
+  const campus = createCampusSample();
+  assert.equal(campus.recurrence?.mode, 'weekly');
+  assert.equal(campus.recurrence?.activeWeek, '2026-09-07');
+  assert.deepEqual(
+    [...new Set(campus.sessions.map((session) => session.day))],
+    [0, 1, 2, 3, 4],
+  );
+  assert.ok(campus.rooms.some((room) => room.id === 'sports-ground'));
+  assert.equal(findConflicts(campus).length, 0);
+  const imported = act(createSample(), 'import_schedule', {
+    schedule: portableSchedule(campus),
+  });
+  assert.equal(imported.event.name, 'Northstar Campus Week');
+  assert.equal(imported.recurrence?.templateSessions.length, 16);
+  assert.equal(findConflicts(imported).length, 0);
 });
 void test('duplicate disruption and invalid references are rejected', () => {
   const s = delayed();

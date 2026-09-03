@@ -22,7 +22,7 @@ The same constraint model now supports both live events and repeating weekly tim
 1. Open **Event settings**, choose **Repeating weekly timetable**, and save. The existing day becomes the Monday template.
 2. Open a session, choose its weekday, then choose **This week only** or **This and all future weeks** before saving.
 3. Use the week arrows beneath the event date. A one-week exception reappears only on its dated week; a permanent change remains in later weeks.
-4. Select **Import schedule** and paste either a Runline JSON export or timetable CSV. CSV supports `Mode`, `Date`, `Day`, `Session`, `Start`, `Duration`, `Room`, `Speakers`, `Attendance`, `Room Capacity`, and `Locked` columns.
+4. Select **Import schedule** and choose **Load campus timetable demo** for an instant fictional five-day example, or paste a Runline JSON export or timetable CSV. CSV supports `Mode`, `Date`, `Day`, `Session`, `Start`, `Duration`, `Room`, `Speakers`, `Attendance`, `Room Capacity`, and `Locked` columns.
 
 For the actual agent workflow, open Runline as a top-level page in a compatible WebMCP browser. When the app says its ten tools are registered, use:
 

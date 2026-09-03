@@ -6,7 +6,7 @@ Prepared September 3, 2026, India time. The live demo, source repository, and na
 
 **Project name:** Runline
 
-**Tagline:** Runline lets organizers and browser agents repair live schedules together—using real constraints while keeping every final decision human.
+**Tagline:** Runline helps people and browser agents repair live events and recurring timetables together—while humans keep the final say.
 
 **Built with:** WebMCP, TypeScript, React, Vinext, Cloudflare Workers, D1, Drizzle, Tailwind CSS, shadcn/Base UI.
 
@@ -28,7 +28,7 @@ Prepared September 3, 2026, India time. The live demo, source repository, and na
 
 **App status:** New. The repository history begins September 1, 2026, within the submission period.
 
-**Testing instructions:** Open the live URL as a top-level page in ChatGPT desktop's in-app browser. Wait for the “10 WebMCP tools are ready” status, then use the Agent quick start prompt. No account or credentials are required. The browser agent may read the schedule, record a fictional disruption, propose a repair, and request approval. In the organizer interface, open **Collect confirmations**, confirm every affected fictional speaker, then apply. Rejecting a plan or declining a speaker response produces a distinct next-best option when the bounded search finds one. To test recurrence, open Event settings, choose **Repeating weekly timetable**, save, edit a session for either this week only or all future weeks, then use the week arrows to verify temporary exceptions reset. **Import schedule** accepts Runline JSON or timetable CSV. Reset demo restores a clean fictional workspace.
+**Testing instructions:** Open the live URL as a top-level page in ChatGPT desktop's in-app browser. Wait for the “10 WebMCP tools are ready” status, then use the Agent quick start prompt. No account or credentials are required. The browser agent may read the schedule, record a fictional disruption, propose a repair, and request approval. In the organizer interface, open **Collect confirmations**, confirm every affected fictional speaker, then apply. Rejecting a plan or declining a speaker response produces a distinct next-best option when the bounded search finds one. For the fastest recurrence test, open **Import schedule**, select **Load campus timetable demo**, edit a class for either this week only or all future weeks, then use the week arrows to verify temporary exceptions reset. The same import panel accepts Runline JSON or timetable CSV. Reset demo restores a clean fictional workspace.
 
 **Public code repository:** https://github.com/jozai193/runline-webmcp
 

@@ -29,6 +29,7 @@ import {
   Repeat2,
   RotateCcw,
   Search,
+  School,
   Settings2,
   ShieldCheck,
   Sparkles,
@@ -59,6 +60,7 @@ import { useWorkspace } from '@/hooks/use-workspace';
 import { findConflicts, speakerConsentsFor } from '@/lib/engine';
 import { portableSchedule, scheduleCSV, scheduleICS } from '@/lib/export';
 import { parseScheduleInput } from '@/lib/import';
+import { createCampusSample } from '@/lib/sample';
 import {
   dateForDay,
   roomName,
@@ -1942,6 +1944,36 @@ export default function RunlineApp() {
           )}
           {modal === 'import' && (
             <div className="editor-form">
+              <Button
+                variant="outline"
+                disabled={busyOrLoading}
+                onClick={async () => {
+                  const campus = createCampusSample();
+                  if (
+                    await run(
+                      {
+                        action: 'import_schedule',
+                        schedule: portableSchedule(campus),
+                      },
+                      'Fictional campus timetable loaded. Try a one-week class change, then move to the next week.',
+                      editVersion,
+                    )
+                  ) {
+                    setModal(null);
+                    setImportText('');
+                    setActiveDay(0);
+                    setPreview(false);
+                    setReviewId(null);
+                  }
+                }}
+              >
+                <School size={14} /> Load campus timetable demo
+              </Button>
+              <p className="form-hint">
+                Replaces this demo workspace with a fictional five-day campus
+                timetable covering classrooms, a lab, auditorium, and sports
+                ground.
+              </p>
               <p className="form-hint">
                 Paste a Runline JSON export or timetable CSV. CSV columns can
                 include Mode, Date, Day, Session, Start, Duration, Room,
