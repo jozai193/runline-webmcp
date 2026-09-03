@@ -82,7 +82,7 @@ This is a hackathon demonstration, not a production event-management service. Do
 
 The included Sites configuration declares the logical D1 binding `DB`. The platform provisions the real database; do not hardcode database credentials. Build output is a Cloudflare Worker under `dist/server` with static assets. Set trusted runtime variable `RUNLINE_PUBLIC_ORIGIN` to the deployed origin for absolute social previews. Local metadata defaults to `http://localhost:3000`; it never trusts forwarded host headers. No secret is required by this application.
 
-The hosted demo and source repository are public. The recurring-timetable expansion was deployed on September 3, 2026, and its public health endpoint and homepage returned successfully. The public narrated video at https://youtu.be/TkFAmO41OPs demonstrates the speaker-confirmation flow and was verified on its public watch page.
+The hosted demo and source repository are public. The recurring-timetable expansion was deployed on September 3, 2026, and its public health endpoint and homepage returned successfully. The public narrated video at https://youtu.be/c0Ecrz7BbGk demonstrates the speaker-confirmation flow and recurring-timetable workflow and was verified on its public watch page.
 
 ## Project materials
 

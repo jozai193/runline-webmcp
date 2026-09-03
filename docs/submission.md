@@ -14,7 +14,7 @@ Prepared September 3, 2026, India time. The live demo, source repository, and na
 
 **Source URL:** https://github.com/jozai193/runline-webmcp
 
-**Video URL:** https://youtu.be/TkFAmO41OPs
+**Video URL:** https://youtu.be/c0Ecrz7BbGk
 
 **Thumbnail:** `public/og.png` (1536 x 1024, 3:2).
 
