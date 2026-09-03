@@ -10,7 +10,9 @@ import {
   CalendarDays,
   Check,
   CheckCheck,
+  ChevronLeft,
   ChevronDown,
+  ChevronRight,
   CircleHelp,
   Clock3,
   Command,
@@ -24,6 +26,7 @@ import {
   LockKeyhole,
   Plus,
   Radio,
+  Repeat2,
   RotateCcw,
   Search,
   Settings2,
@@ -55,8 +58,23 @@ import { ScheduleBoard } from '@/components/schedule-board';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { findConflicts, speakerConsentsFor } from '@/lib/engine';
 import { portableSchedule, scheduleCSV, scheduleICS } from '@/lib/export';
-import { roomName, timeLabel, timeValue, uid } from '@/lib/domain';
-import type { Disruption, EventInfo, Objective, Session } from '@/lib/domain';
+import { parseScheduleInput } from '@/lib/import';
+import {
+  dateForDay,
+  roomName,
+  sessionDay,
+  timeLabel,
+  timeValue,
+  uid,
+  WEEKDAYS,
+} from '@/lib/domain';
+import type {
+  ChangeScope,
+  Disruption,
+  EventInfo,
+  Objective,
+  Session,
+} from '@/lib/domain';
 
 type Modal =
   | 'disruption'
@@ -85,6 +103,7 @@ const blankDisruption = {
   end: '14:00',
   attendees: 140,
   note: '',
+  day: 0,
 };
 
 function download(name: string, content: string, type: string) {
@@ -117,11 +136,16 @@ export default function RunlineApp() {
     [notice, setNotice] = useState('');
   const [query, setQuery] = useState(''),
     [view, setView] = useState('board'),
+    [activeDay, setActiveDay] = useState(0),
     [preview, setPreview] = useState(false),
     [objective, setObjective] = useState<Objective>('fewest_changes');
   const [disruption, setDisruption] = useState(blankDisruption),
     [editing, setEditing] = useState<Session | null>(null),
     [editingEvent, setEditingEvent] = useState<EventInfo>(state.event),
+    [recurrenceMode, setRecurrenceMode] = useState<'single' | 'weekly'>(
+      'single',
+    ),
+    [changeScope, setChangeScope] = useState<ChangeScope>('this_week'),
     [editVersion, setEditVersion] = useState(0);
   const [importText, setImportText] = useState('');
   const conflicts = findConflicts(state),
@@ -177,6 +201,7 @@ export default function RunlineApp() {
   };
   const showSession = (session: Session) => {
     setEditing(structuredClone(session));
+    setChangeScope('this_week');
     open('session');
   };
   const newSession = () => {
@@ -190,7 +215,9 @@ export default function RunlineApp() {
       attendees: 50,
       type: 'talk',
       locked: false,
+      day: state.recurrence ? activeDay : 0,
     });
+    setChangeScope('this_week');
     open('session');
   };
   const propose = async () => {
@@ -285,6 +312,7 @@ export default function RunlineApp() {
       ),
       attendees: 140,
       note: '',
+      day: state.recurrence ? activeDay : 0,
     });
     open('disruption');
   };
@@ -300,9 +328,35 @@ export default function RunlineApp() {
     day: 'numeric',
     timeZone: 'UTC',
   });
+  const weekEnd = state.recurrence
+    ? new Date(`${dateForDay(state.recurrence.activeWeek, 6)}T12:00:00Z`)
+    : null;
+  const weekLabel = weekEnd
+    ? `${readableDate} – ${weekEnd.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'UTC',
+      })}`
+    : readableDate;
   const timeZoneLabel =
     state.event.timezone === 'Asia/Kolkata' ? 'IST' : state.event.timezone;
   const lastApplied = state.proposals.find((p) => p.status === 'applied');
+  const moveWeek = async (offset: number) => {
+    if (!state.recurrence) return;
+    const next = new Date(`${state.recurrence.activeWeek}T12:00:00Z`);
+    next.setUTCDate(next.getUTCDate() + offset * 7);
+    const weekStart = next.toISOString().slice(0, 10);
+    if (
+      await run(
+        { action: 'set_active_week', weekStart },
+        `Opened the week of ${weekStart}.`,
+      )
+    ) {
+      setActiveDay(0);
+      setPreview(false);
+      setReviewId(null);
+    }
+  };
 
   return (
     <div className="app-shell">
@@ -342,6 +396,7 @@ export default function RunlineApp() {
             aria-label="Event settings"
             onClick={() => {
               setEditingEvent({ ...state.event });
+              setRecurrenceMode(state.recurrence ? 'weekly' : 'single');
               open('settings');
             }}
           >
@@ -393,11 +448,39 @@ export default function RunlineApp() {
               </h1>
               <p className="event-meta">
                 <CalendarDays size={15} />
-                {readableDate}
+                {weekLabel}
                 <span>·</span>
                 {state.event.venue}
                 <span>·</span>All times {timeZoneLabel}
               </p>
+              {state.recurrence && (
+                <div
+                  className="week-switcher"
+                  aria-label="Weekly timetable navigation"
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Previous week"
+                    disabled={busyOrLoading}
+                    onClick={() => void moveWeek(-1)}
+                  >
+                    <ChevronLeft size={14} />
+                  </Button>
+                  <span>
+                    <Repeat2 size={13} /> Week of {state.recurrence.activeWeek}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Next week"
+                    disabled={busyOrLoading}
+                    onClick={() => void moveWeek(1)}
+                  >
+                    <ChevronRight size={14} />
+                  </Button>
+                </div>
+              )}
             </div>
             <div className="header-actions">
               <Button variant="ghost" size="lg" onClick={() => open('help')}>
@@ -485,10 +568,29 @@ export default function RunlineApp() {
             <section className="schedule-panel" aria-label="Schedule workspace">
               <div className="panel-toolbar">
                 <div>
-                  <span className="active-tab">Run of show</span>
-                  <span className="quiet-tab">{dateLong}</span>
+                  <span className="active-tab">
+                    {state.recurrence ? 'Weekly timetable' : 'Run of show'}
+                  </span>
+                  <span className="quiet-tab">
+                    {state.recurrence ? WEEKDAYS[activeDay] : dateLong}
+                  </span>
                 </div>
                 <div className="board-controls">
+                  {state.recurrence && (
+                    <NativeSelect
+                      aria-label="Day of week"
+                      value={activeDay}
+                      onChange={(event) =>
+                        setActiveDay(Number(event.target.value))
+                      }
+                    >
+                      {WEEKDAYS.map((day, index) => (
+                        <NativeSelectOption value={index} key={day}>
+                          {day.slice(0, 3)}
+                        </NativeSelectOption>
+                      ))}
+                    </NativeSelect>
+                  )}
                   <Tabs value={view} onValueChange={(v) => setView(String(v))}>
                     <TabsList>
                       <TabsTrigger value="board" aria-label="Board view">
@@ -563,6 +665,7 @@ export default function RunlineApp() {
                 preview={activePreview}
                 query={query}
                 agenda={view === 'agenda'}
+                activeDay={activeDay}
                 onSession={showSession}
               />
               <div className="board-footer">
@@ -747,7 +850,10 @@ export default function RunlineApp() {
                         className="wide-button"
                         size="lg"
                         disabled={busyOrLoading}
-                        onClick={() => open('apply')}
+                        onClick={() => {
+                          setChangeScope('this_week');
+                          open('apply');
+                        }}
                       >
                         <UserCheck size={16} />{' '}
                         {canApply ? 'Review & apply' : 'Collect confirmations'}{' '}
@@ -951,7 +1057,7 @@ export default function RunlineApp() {
             <button onClick={() => open('help')}>7-day demo storage</button>
             <span>·</span>
             <button disabled={busyOrLoading} onClick={() => open('import')}>
-              Import event
+              Import schedule
             </button>
             <span>·</span>
             <button disabled={busyOrLoading} onClick={() => open('reset')}>
@@ -1000,7 +1106,7 @@ export default function RunlineApp() {
                       : modal === 'export'
                         ? 'Take the schedule with you'
                         : modal === 'import'
-                          ? 'Bring your own event'
+                          ? 'Bring your own schedule'
                           : modal === 'history'
                             ? 'Every decision, accounted for'
                             : modal === 'apply'
@@ -1023,7 +1129,7 @@ export default function RunlineApp() {
                       : modal === 'export'
                         ? 'Exports contain the current saved schedule, never an unapproved preview.'
                         : modal === 'import'
-                          ? 'Paste a Runline JSON export. Import replaces the schedule after validation.'
+                          ? 'Paste a Runline JSON export or a timetable CSV. Import replaces the schedule after validation.'
                           : modal === 'history'
                             ? 'Saved actions are shown newest first. Interface labels are not identity verification.'
                             : modal === 'apply'
@@ -1125,6 +1231,26 @@ export default function RunlineApp() {
                   ))}
                 </NativeSelect>
               </label>
+              {state.recurrence && (
+                <label>
+                  Affected day
+                  <NativeSelect
+                    value={disruption.day ?? activeDay}
+                    onChange={(e) =>
+                      setDisruption((d) => ({
+                        ...d,
+                        day: Number(e.target.value),
+                      }))
+                    }
+                  >
+                    {WEEKDAYS.map((day, index) => (
+                      <NativeSelectOption value={index} key={day}>
+                        {day}
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelect>
+                </label>
+              )}
               {disruption.kind === 'attendance' ? (
                 <label>
                   Expected attendees
@@ -1197,8 +1323,14 @@ export default function RunlineApp() {
               onSubmit={async (e) => {
                 e.preventDefault();
                 const next = await run(
-                  { action: 'save_session', session: editing },
-                  'Session saved. Any older proposal needs recalculating.',
+                  {
+                    action: 'save_session',
+                    session: editing,
+                    scope: changeScope,
+                  },
+                  state.recurrence && changeScope === 'future'
+                    ? 'Permanent timetable change saved for this and future weeks.'
+                    : 'Session saved. Any older proposal needs recalculating.',
                   editVersion,
                 );
                 if (next) {
@@ -1227,6 +1359,24 @@ export default function RunlineApp() {
                   }
                 />
               </label>
+              {state.recurrence && (
+                <label>
+                  Weekday
+                  <NativeSelect
+                    disabled={editing.locked}
+                    value={sessionDay(editing)}
+                    onChange={(e) =>
+                      setEditing({ ...editing, day: Number(e.target.value) })
+                    }
+                  >
+                    {WEEKDAYS.map((day, index) => (
+                      <NativeSelectOption value={index} key={day}>
+                        {day}
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelect>
+                </label>
+              )}
               <div className="form-grid">
                 <label>
                   Room
@@ -1358,6 +1508,24 @@ export default function RunlineApp() {
                   . Manage additional speakers in a JSON import.
                 </p>
               )}
+              {state.recurrence && (
+                <label>
+                  Change applies to
+                  <NativeSelect
+                    value={changeScope}
+                    onChange={(e) =>
+                      setChangeScope(e.target.value as ChangeScope)
+                    }
+                  >
+                    <NativeSelectOption value="this_week">
+                      This week only — resets next week
+                    </NativeSelectOption>
+                    <NativeSelectOption value="future">
+                      This and all future weeks
+                    </NativeSelectOption>
+                  </NativeSelect>
+                </label>
+              )}
               <div className="editor-actions">
                 {state.sessions.some((s) => s.id === editing.id) && (
                   <Button
@@ -1370,6 +1538,7 @@ export default function RunlineApp() {
                           action: 'set_lock',
                           id: editing.id,
                           locked: !editing.locked,
+                          scope: changeScope,
                         },
                         editing.locked
                           ? 'Session unlocked.'
@@ -1419,7 +1588,11 @@ export default function RunlineApp() {
                 e.preventDefault();
                 if (
                   await run(
-                    { action: 'save_event', event: editingEvent },
+                    {
+                      action: 'save_event',
+                      event: editingEvent,
+                      recurrenceMode,
+                    },
                     'Event settings saved.',
                     editVersion,
                   )
@@ -1440,7 +1613,7 @@ export default function RunlineApp() {
               </label>
               <div className="form-grid">
                 <label>
-                  Date
+                  {recurrenceMode === 'weekly' ? 'Week beginning' : 'Date'}
                   <Input
                     type="date"
                     required
@@ -1465,6 +1638,22 @@ export default function RunlineApp() {
                   />
                 </label>
               </div>
+              <label>
+                Schedule pattern
+                <NativeSelect
+                  value={recurrenceMode}
+                  onChange={(e) =>
+                    setRecurrenceMode(e.target.value as 'single' | 'weekly')
+                  }
+                >
+                  <NativeSelectOption value="single">
+                    Single event
+                  </NativeSelectOption>
+                  <NativeSelectOption value="weekly">
+                    Repeating weekly timetable
+                  </NativeSelectOption>
+                </NativeSelect>
+              </label>
               <label>
                 Timezone
                 <Input
@@ -1525,8 +1714,10 @@ export default function RunlineApp() {
                 </NativeSelect>
               </label>
               <p className="form-hint">
-                Changing constraints may reveal conflicts. Rooms, speakers, and
-                full schedules can be configured through a JSON import.
+                Weekly mode stores a reusable template. Edit a class for this
+                week only to create an exception, or apply it permanently to
+                this and future weeks. Full schedules can be imported from JSON
+                or timetable CSV.
               </p>
               <Button type="submit" disabled={busyOrLoading}>
                 Save event settings
@@ -1641,6 +1832,24 @@ export default function RunlineApp() {
                   send external notifications.
                 </p>
               </div>
+              {state.recurrence && (
+                <label>
+                  Apply repaired times to
+                  <NativeSelect
+                    value={changeScope}
+                    onChange={(e) =>
+                      setChangeScope(e.target.value as ChangeScope)
+                    }
+                  >
+                    <NativeSelectOption value="this_week">
+                      This week only — template returns next week
+                    </NativeSelectOption>
+                    <NativeSelectOption value="future">
+                      This and all future weeks
+                    </NativeSelectOption>
+                  </NativeSelect>
+                </label>
+              )}
               <p className="form-hint">
                 This updates your saved schedule only. Runline does not send
                 notifications or make external bookings.
@@ -1650,7 +1859,11 @@ export default function RunlineApp() {
                 disabled={busyOrLoading || !canApply}
                 onClick={async () => {
                   const next = await run(
-                    { action: 'apply_proposal', id: pending.id },
+                    {
+                      action: 'apply_proposal',
+                      id: pending.id,
+                      scope: changeScope,
+                    },
                     'Changes approved. Your event is back in sync.',
                     editVersion,
                   );
@@ -1730,18 +1943,19 @@ export default function RunlineApp() {
           {modal === 'import' && (
             <div className="editor-form">
               <p className="form-hint">
-                Start with Export → Full event JSON. Supports up to 24 sessions,
-                6 rooms, 40 speakers, and 12 disruptions. Your imported content
-                is stored in this browser’s server-backed demo workspace and
-                expires seven days after your last saved action. Avoid personal
-                or sensitive data.
+                Paste a Runline JSON export or timetable CSV. CSV columns can
+                include Mode, Date, Day, Session, Start, Duration, Room,
+                Speakers, Attendance, Room Capacity, and Locked. Weekly rows
+                become a reusable timetable template. Supports up to 24
+                sessions, 6 locations, and 40 people. Avoid personal or
+                sensitive data.
               </p>
               <label>
-                Event JSON
+                Schedule JSON or CSV
                 <Textarea
                   className="json-editor"
                   placeholder={
-                    '{ "event": { ... }, "rooms": [...], "speakers": [...], "sessions": [...] }'
+                    'Mode,Date,Day,Session,Start,Duration,Room,Speakers,Attendance\nweekly,2026-09-07,Monday,Physics,09:00,60,Room 101,Dr Rao,45'
                   }
                   value={importText}
                   maxLength={55000}
@@ -1751,30 +1965,37 @@ export default function RunlineApp() {
               <Button
                 disabled={busyOrLoading || !importText.trim()}
                 onClick={async () => {
-                  let schedule;
                   try {
-                    schedule = JSON.parse(importText);
-                  } catch {
+                    const imported = parseScheduleInput(importText, state);
+                    if (
+                      await run(
+                        {
+                          action: 'import_schedule',
+                          schedule: imported.schedule,
+                          recurrenceMode: imported.recurrenceMode,
+                        },
+                        imported.recurrenceMode === 'weekly'
+                          ? 'Weekly timetable imported. Temporary changes can now expire automatically.'
+                          : 'Event imported. Review any conflicts before proposing changes.',
+                        editVersion,
+                      )
+                    ) {
+                      setModal(null);
+                      setImportText('');
+                      setActiveDay(0);
+                      setPreview(false);
+                      setReviewId(null);
+                    }
+                  } catch (error) {
                     setFormError(
-                      'This isn’t valid JSON. Check commas and quotation marks.',
+                      error instanceof Error
+                        ? error.message
+                        : 'The schedule could not be imported.',
                     );
-                    return;
-                  }
-                  if (
-                    await run(
-                      { action: 'import_schedule', schedule },
-                      'Event imported. Review any conflicts before proposing changes.',
-                      editVersion,
-                    )
-                  ) {
-                    setModal(null);
-                    setImportText('');
-                    setPreview(false);
-                    setReviewId(null);
                   }
                 }}
               >
-                <Upload size={14} /> Validate & replace schedule
+                <Upload size={14} /> Validate & import schedule
               </Button>
             </div>
           )}
@@ -1909,8 +2130,9 @@ export default function RunlineApp() {
                   The same model can coordinate a campus program: lecture halls,
                   auditoriums, classrooms, and sports grounds become rooms;
                   matches, rehearsals, ceremonies, and workshops become
-                  sessions. This demo remains intentionally focused on a
-                  single-day live event.
+                  sessions. Weekly mode separates the reusable timetable from
+                  dated exceptions, so a one-week change expires automatically
+                  while a permanent change updates future weeks.
                 </p>
               </section>
               <section>
@@ -1963,7 +2185,7 @@ export default function RunlineApp() {
                     {
                       action,
                       ...(action === 'remove_session'
-                        ? { id: editing?.id }
+                        ? { id: editing?.id, scope: changeScope }
                         : {}),
                     },
                     modal === 'undo'

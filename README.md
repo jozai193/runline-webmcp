@@ -4,7 +4,7 @@
 
 Runline is not an embedded chatbot. Its ten structured browser tools read the actual workspace, record disruptions, propose constraint-checked changes, and request organizer review. The organizer compares before/after, protects sessions, and records confirmation from every affected speaker before applying a proposal. A rejection searches for a distinct next-best option instead of immediately repeating the same plan.
 
-The same constraint model can coordinate a small campus program today: lecture halls, auditoriums, classrooms, and sports grounds are locations; matches, rehearsals, ceremonies, and workshops are scheduled sessions. Multi-day bookings, equipment, authenticated campus roles, and notifications remain future product work.
+The same constraint model now supports both live events and repeating weekly timetables. Lecture halls, auditoriums, classrooms, sports grounds, and wedding halls become locations; classes, matches, rehearsals, ceremonies, and bookings become scheduled sessions. A temporary change is stored as a dated week exception and disappears when the next week opens, while a permanent change updates the reusable template and future weeks.
 
 **Live demo:** https://runline-control-room.advikmjevoor.chatgpt.site
 
@@ -16,6 +16,13 @@ The same constraint model can coordinate a small campus program today: lecture h
 4. Open **Collect confirmations**. Record a response from every affected speaker, then **Apply these changes**. Inspect activity history or undo the repair.
 5. Alternatively, choose **Show next-best option** or decline a speaker confirmation. Runline rejects that plan and searches for a different feasible trade-off at the same schedule revision.
 6. Reset the demo and try a room closure or an attendance spike. An impossible request stays visibly blocked.
+
+## Try a recurring timetable
+
+1. Open **Event settings**, choose **Repeating weekly timetable**, and save. The existing day becomes the Monday template.
+2. Open a session, choose its weekday, then choose **This week only** or **This and all future weeks** before saving.
+3. Use the week arrows beneath the event date. A one-week exception reappears only on its dated week; a permanent change remains in later weeks.
+4. Select **Import schedule** and paste either a Runline JSON export or timetable CSV. CSV supports `Mode`, `Date`, `Day`, `Session`, `Start`, `Duration`, `Room`, `Speakers`, `Attendance`, `Room Capacity`, and `Locked` columns.
 
 For the actual agent workflow, open Runline as a top-level page in a compatible WebMCP browser. When the app says its ten tools are registered, use:
 
@@ -50,7 +57,8 @@ The API smoke suite creates its own isolated sample workspaces. It never touches
 The React interface and WebMCP tools share the same command/validation engine. Mutations go through a same-origin Worker route and a version-guarded D1 update; proposals cannot overwrite newer organizer edits. `revision` tracks schedule/constraint changes while `version` guards every saved action, including review requests.
 
 - `lib/engine.ts`: conflict detection, bounded deterministic repair search, and exclusion of previously rejected plans.
-- `lib/actions.ts`: authoritative state transitions, speaker-confirmation gate, lock protection, approval, stale-write guards, and undo.
+- `lib/actions.ts`: authoritative state transitions, weekly templates and dated exceptions, speaker-confirmation gate, lock protection, approval, stale-write guards, and undo.
+- `lib/import.ts`: validated JSON/CSV timetable ingestion with safe IDs and bounded collections.
 - `lib/webmcp.ts`: ten tool schemas and real execute handlers; no fake agent transcript.
 - `lib/storage.ts` and `app/api/workspace/route.ts`: isolated workspaces, cookie token hashing, persistence and atomic writes.
 - `components/`: schedule board, proposal comparison, forms, activity, help and exports.
@@ -74,7 +82,7 @@ This is a hackathon demonstration, not a production event-management service. Do
 
 The included Sites configuration declares the logical D1 binding `DB`. The platform provisions the real database; do not hardcode database credentials. Build output is a Cloudflare Worker under `dist/server` with static assets. Set trusted runtime variable `RUNLINE_PUBLIC_ORIGIN` to the deployed origin for absolute social previews. Local metadata defaults to `http://localhost:3000`; it never trusts forwarded host headers. No secret is required by this application.
 
-The hosted demo and source repository are public and were verified from credential-free sessions on September 2, 2026. A refreshed local video candidate demonstrates the speaker-confirmation flow; it still requires a human listen-through, public YouTube upload and signed-out playback check before the hackathon submission is final.
+The hosted demo and source repository were verified from credential-free sessions on September 2, 2026. The public narrated video at https://youtu.be/TkFAmO41OPs demonstrates the speaker-confirmation flow and was verified on its public watch page. The recurring-timetable expansion was added afterward and requires a fresh public deployment check before final submission.
 
 ## Project materials
 

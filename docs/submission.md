@@ -1,6 +1,6 @@
 # WebMCP Challenge submission pack
 
-Prepared September 3, 2026, India time. The live demo and source repository are public. The video and Devpost entry remain unpublished drafts; no final submission has been made on the entrant's behalf.
+Prepared September 3, 2026, India time. The live demo, source repository, and narrated YouTube video are public. The Devpost entry remains a draft; no final submission has been made on the entrant's behalf.
 
 ## Submission fields
 
@@ -14,7 +14,7 @@ Prepared September 3, 2026, India time. The live demo and source repository are 
 
 **Source URL:** https://github.com/jozai193/runline-webmcp
 
-**Video URL:** Use the verified public narrated YouTube video under three minutes. Do not submit this script as a video.
+**Video URL:** https://youtu.be/TkFAmO41OPs
 
 **Thumbnail:** `public/og.png` (1536 x 1024, 3:2).
 
@@ -28,7 +28,7 @@ Prepared September 3, 2026, India time. The live demo and source repository are 
 
 **App status:** New. The repository history begins September 1, 2026, within the submission period.
 
-**Testing instructions:** Open the live URL as a top-level page in ChatGPT desktop's in-app browser. Wait for the “10 WebMCP tools are ready” status, then use the Agent quick start prompt. No account or credentials are required. The browser agent may read the schedule, record a fictional disruption, propose a repair, and request approval. In the organizer interface, open **Collect confirmations**, confirm every affected fictional speaker, then apply. Rejecting a plan or declining a speaker response produces a distinct next-best option when the bounded search finds one. Reset demo restores a clean fictional workspace.
+**Testing instructions:** Open the live URL as a top-level page in ChatGPT desktop's in-app browser. Wait for the “10 WebMCP tools are ready” status, then use the Agent quick start prompt. No account or credentials are required. The browser agent may read the schedule, record a fictional disruption, propose a repair, and request approval. In the organizer interface, open **Collect confirmations**, confirm every affected fictional speaker, then apply. Rejecting a plan or declining a speaker response produces a distinct next-best option when the bounded search finds one. To test recurrence, open Event settings, choose **Repeating weekly timetable**, save, edit a session for either this week only or all future weeks, then use the week arrows to verify temporary exceptions reset. **Import schedule** accepts Runline JSON or timetable CSV. Reset demo restores a clean fictional workspace.
 
 **Public code repository:** https://github.com/jozai193/runline-webmcp
 
@@ -56,9 +56,9 @@ Runline is an event scheduling control room with a shared human-agent workflow. 
 
 Locked sessions stay protected. Every applied repair is revalidated against room and speaker availability, capacity, event hours, lunch and turnover. New edits invalidate old proposals, and undo preserves the recorded disruption so the original problem does not disappear from the history.
 
-The demo includes persistent browser-isolated workspaces, session editing, event configuration, custom JSON import, CSV/ICS/JSON exports and an activity trail. All sample people and events are fictional.
+The demo includes persistent browser-isolated workspaces, session editing, event configuration, JSON and timetable CSV import, CSV/ICS/JSON exports and an activity trail. It supports both single events and reusable weekly templates. A one-week edit is stored as a dated exception and automatically gives way to the normal template in the next week; a permanent edit updates future weeks. All sample people and events are fictional.
 
-The underlying model is reusable beyond conferences. A small college can represent lecture halls, auditoriums, classrooms, and sports grounds as locations, then schedule matches, rehearsals, ceremonies, and workshops with the same capacity, availability, conflict, protection, consent, and alternative-plan workflow. Runline does not claim to be a complete campus booking system; multi-day recurrence, equipment, authenticated campus roles, and notifications are future work.
+The underlying model is reusable beyond conferences. A college can represent lecture halls, auditoriums, classrooms, and sports grounds as locations, then schedule classes, matches, rehearsals, ceremonies, and workshops across a repeating week. Wedding halls and other bookable venues use the same capacity, availability, conflict, protection, consent, exception, and alternative-plan workflow. Runline does not claim to be a complete booking system; alternating-week rotations, semesters, equipment, payments, authenticated roles, and notifications are future work.
 
 ### How we built it
 
@@ -80,7 +80,7 @@ WebMCP is most useful when tools are designed around the application’s domain,
 
 ### What's next
 
-Authenticated speaker accounts or signed confirmation links, outbound notifications, production role authorization, stricter human-presence approval, rate limiting, scheduled retention cleanup, multi-day events, external calendar synchronization and broader solver evaluations are future work, not claims about this demo.
+Authenticated participant accounts or signed confirmation links, outbound notifications, production role authorization, stricter human-presence approval, rate limiting, scheduled retention cleanup, alternating-week and semester calendars, equipment and payment workflows, external calendar synchronization and broader solver evaluations are future work, not claims about this demo.
 
 ### AI assistance
 
@@ -88,12 +88,12 @@ The implementation, documentation and test suite were built with OpenAI Codex an
 
 ## Strategy against the rubric
 
-| Criterion (equal weight) | Evidence to show                                                                                                                                  |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| WebMCP Leverage          | Native discovery and execution on the same visible workspace; the agent hands a concrete plan to the organizer and affected-speaker consent gate. |
-| Execution                | Persisted workflow, distinct retries, real constraint and consent validation, stale-write rejection, isolated workspaces and accessible controls. |
-| Potential Impact         | A focused live-event problem with a credible path to campus venues such as auditoriums, classrooms and sports grounds—without inventing traction. |
-| Creativity & Ambition    | A shared decision surface, custom agent proposals, affected-party consent, hard constraints, human locks and honest blocked states.               |
+| Criterion (equal weight) | Evidence to show                                                                                                                                     |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WebMCP Leverage          | Native discovery and execution on the same visible workspace; the agent hands a concrete plan to the organizer and affected-speaker consent gate.    |
+| Execution                | Persisted workflow, distinct retries, real constraint and consent validation, stale-write rejection, isolated workspaces and accessible controls.    |
+| Potential Impact         | Live-event repair plus working weekly templates and dated exceptions for campuses, wedding halls and other shared venues—without inventing traction. |
+| Creativity & Ambition    | A shared decision surface, custom agent proposals, affected-party consent, hard constraints, human locks and honest blocked states.                  |
 
 WebMCP leverage is the first tie-breaker in the published rules. Prioritize a short, convincing native-browser collaboration sequence over adding unrelated features. No strategy guarantees a win.
 
@@ -117,11 +117,11 @@ Sources: [overview](https://webmcp.devpost.com/), [official rules](https://webmc
 - [x] Owner approves public source publication. Public app access is already approved.
 - [x] Public app loads without owner-only access restrictions; each judge gets a fresh sample.
 - [x] Public repository includes all application source, migration, tests, README and license; no secrets or private test records. Anonymous clone, install, tests, lint, typecheck and build passed.
-- [ ] Public narrated YouTube demo exists, is under three minutes, and plays signed out.
+- [x] Public narrated YouTube demo exists, is under three minutes, and plays on its public watch page.
 - [x] Draft prose and gallery assets match the demonstrated consent and blocked-state behavior.
-- [ ] Final app, source and video URLs are entered into Devpost.
+- [x] Final app, source and video URLs are entered into Devpost.
 - [ ] Team invitations accepted and required questions answered accurately by the entrant.
 - [ ] User approves final Devpost submission; submit and verify confirmation.
 - [ ] Record the submitted source revision and freeze required materials through judging.
 
-The source repository is public and verified. No YouTube upload, eligibility attestation or final Devpost submission has been performed.
+The source repository and narrated YouTube video are public and verified. No eligibility attestation or final Devpost submission has been performed.

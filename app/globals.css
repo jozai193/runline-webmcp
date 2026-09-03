@@ -230,6 +230,28 @@ h1 > span {
 .event-meta > span {
   color: #acb3a6;
 }
+.week-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 9px;
+  padding: 3px 5px;
+  border: 1px solid #dfe5d8;
+  border-radius: 8px;
+  background: #f8faf4;
+  color: #718066;
+}
+.week-switcher > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  min-width: 145px;
+  justify-content: center;
+}
+.week-switcher button {
+  color: #738269;
+}
 .workspace-summary {
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
@@ -883,6 +905,15 @@ h1 > span {
 }
 .board-controls {
   gap: 8px !important;
+}
+.board-controls [data-slot='native-select-wrapper'] {
+  width: 72px;
+}
+.board-controls select {
+  height: 30px;
+  font-size: 10px;
+  color: #617356;
+  background: #f8faf4;
 }
 .board-controls [data-slot='tabs-list'] {
   background: #f1f3eb;

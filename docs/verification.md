@@ -4,7 +4,7 @@ Date: September 3, 2026, IST. Environment: Windows, Node 24.14.1. This separates
 
 ## Completed automated checks
 
-- 47 domain/adapter tests passed: baseline validation; three disruption types across three search objectives; lock preservation; impossible requests; proposal immutability; distinct same-revision alternatives; required affected-speaker confirmation and decline handling; stale version and stale proposal rejection; approval; undo; custom moves; import validation; CSV formula handling; UTF-8 calendar folding and midnight rollover; actual WebMCP handler sequence; registration cleanup and failure rollback.
+- 54 domain/adapter tests passed: baseline validation; three disruption types across three search objectives; lock preservation; impossible requests; proposal immutability; distinct same-revision alternatives; required affected-speaker confirmation and decline handling; stale version and stale proposal rejection; approval; undo; custom moves; weekly exception reset; permanent future changes; proposal-scoped weekly repair and undo; saved-week navigation; weekday-aware conflicts and disruptions; JSON/CSV timetable import; CSV formula handling; UTF-8 calendar folding and midnight rollover; actual WebMCP handler sequence; registration cleanup and failure rollback.
 - 25 HTTP integration checks passed against the local Worker/D1 runtime: creation and cookie flags, isolated workspaces, saved disruption/proposal, refusal to apply before affected-speaker confirmation, persisted speaker confirmations, approval, persistence across requests, exact-one-winner concurrent updates, origin/header checks, missing/unknown cookie handling, invalid JSON, bounded request size and content type enforcement.
 - TypeScript strict checking passed.
 - Source lint passed, including form-control labels and React correctness checks. This is not a formal accessibility audit.
@@ -18,11 +18,11 @@ Date: September 3, 2026, IST. Environment: Windows, Node 24.14.1. This separates
 - `npm install` audit reported zero known vulnerabilities after the pinned dependency updates and a scoped esbuild override. This is not a full security audit and does not guarantee absence of vulnerabilities.
 - Drizzle schema generation passed with the scoped override and reported no missing migrations.
 - The local consent-focused video candidate is 109.30 seconds with 1920 x 1080 H.264 video and 48 kHz mono AAC audio. Silence detection at -42 dB found no interval of 0.7 seconds or longer. A nine-frame contact sheet plus full-resolution consent and applied frames were visually checked after normalizing mixed browser screenshot formats.
+- The recurring-timetable controls were validated through source review, domain tests, HTTP integration checks, strict type checking, lint and the production build. The earlier browser walkthrough predates these controls; a fresh public browser walkthrough remains a release check.
 
 ## Remaining release gates
 
-- Listen through the narrated candidate and review motion/pacing before any upload. Container, duration, dimensions, audio stream, silence profile and representative frames were checked; this is not an auditory or frame-by-frame review.
-- Upload the approved, narrated video publicly (not unlisted), then verify playback from a signed-out session.
+- Deploy this recurring-timetable revision, then exercise the new weekly controls in a fresh public browser workspace.
 - Recheck the final Devpost entry, entrant/team eligibility, public URLs and required acknowledgements; submit only after explicit user approval.
 
 The export controls were exercised and source/unit checks cover their generated formats, but the in-app browser did not expose downloaded files for byte-level browser verification. No production traffic load test, penetration test, formal accessibility audit, calendar-client compatibility matrix, unsupported-browser matrix or real-event pilot has been performed.
@@ -30,8 +30,9 @@ The export controls were exercised and source/unit checks cover their generated 
 ## Known scope limitations
 
 - Bounded search is not globally optimal and may miss feasible schedules.
-- Maximum 24 sessions, 6 rooms, 40 speakers and 12 disruptions; single-day events with a maximum twelve-hour window.
-- Room/speaker collection changes and additional session speakers use JSON import; the UI edits the primary speaker.
+- Maximum 24 sessions, 6 rooms, 40 speakers, 12 disruptions and 16 saved week exceptions; each day has a maximum twelve-hour operating window.
+- Weekly mode supports one reusable seven-day template plus dated week exceptions. It does not yet model alternating-week rotations, semesters, equipment inventories or recurrence rules other than weekly.
+- Room/speaker collection changes and additional session speakers use JSON or timetable CSV import; the UI edits the primary speaker.
 - No collaborative accounts: browser workspaces are isolated, not a team login system.
 - Interface actor labels and the absence of an apply tool do not establish authenticated human presence.
 - Expiration is enforced on reads; physical cleanup is triggered by new workspace creation.

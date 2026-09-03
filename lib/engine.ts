@@ -1,4 +1,11 @@
-import { DomainError, roomName, timeLabel, uid } from './domain.ts';
+import {
+  DomainError,
+  roomName,
+  sessionDay,
+  timeLabel,
+  uid,
+  weekdayLabel,
+} from './domain.ts';
 import type {
   Actor,
   Change,
@@ -15,7 +22,12 @@ import type {
 const overlap = (a: number, b: number, c: number, d: number) => a < d && c < b;
 export function expectedAttendance(schedule: Schedule, s: Session) {
   return schedule.disruptions
-    .filter((d) => d.kind === 'attendance' && d.targetId === s.id)
+    .filter(
+      (d) =>
+        d.kind === 'attendance' &&
+        d.targetId === s.id &&
+        (d.day ?? 0) === sessionDay(s),
+    )
     .reduce((count, d) => Math.max(count, d.attendees), s.attendees);
 }
 
@@ -68,24 +80,26 @@ export function findConflicts(schedule: Schedule): Conflict[] {
     for (const d of schedule.disruptions) {
       if (
         d.kind === 'speaker_delay' &&
+        (d.day ?? 0) === sessionDay(s) &&
         s.speakerIds.includes(d.targetId) &&
         overlap(s.start, s.start + s.duration, d.start, d.end)
       )
         add(
           'availability',
           [s.id],
-          `${s.title}: ${schedule.speakers.find((p) => p.id === d.targetId)?.name} is unavailable ${timeLabel(d.start)}–${timeLabel(d.end)}.`,
+          `${s.title}: ${schedule.speakers.find((p) => p.id === d.targetId)?.name} is unavailable ${weekdayLabel(sessionDay(s))} ${timeLabel(d.start)}–${timeLabel(d.end)}.`,
           d.id,
         );
       if (
         d.kind === 'room_closed' &&
+        (d.day ?? 0) === sessionDay(s) &&
         d.targetId === s.roomId &&
         overlap(s.start, s.start + s.duration, d.start, d.end)
       )
         add(
           'availability',
           [s.id],
-          `${s.title}: ${room.name} is closed ${timeLabel(d.start)}–${timeLabel(d.end)}.`,
+          `${s.title}: ${room.name} is closed ${weekdayLabel(sessionDay(s))} ${timeLabel(d.start)}–${timeLabel(d.end)}.`,
           d.id,
         );
     }
@@ -94,6 +108,7 @@ export function findConflicts(schedule: Schedule): Conflict[] {
     for (let j = i + 1; j < schedule.sessions.length; j++) {
       const a = schedule.sessions[i],
         b = schedule.sessions[j];
+      if (sessionDay(a) !== sessionDay(b)) continue;
       if (
         !overlap(
           a.start,

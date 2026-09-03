@@ -1,9 +1,11 @@
 import {
   DomainError,
   roomName,
+  sessionDay,
   sessionNames,
   timeLabel,
   timeValue,
+  weekdayLabel,
 } from './domain.ts';
 import type { Proposal, Workspace } from './domain.ts';
 import { expectedAttendance, findConflicts } from './engine.ts';
@@ -97,6 +99,8 @@ export function buildTools(adapter: ToolAdapter): ToolDefinition[] {
             .map((p) => ({ id: p.id, stale: p.baseRevision !== s.revision })),
           approvalPolicy:
             'Only the organizer can apply a proposal through the review interface, and every affected speaker must be confirmed first.',
+          scheduleMode: s.recurrence ? 'weekly' : 'single_event',
+          activeWeek: s.recurrence?.activeWeek ?? null,
         };
       },
     ),
@@ -130,6 +134,7 @@ export function buildTools(adapter: ToolAdapter): ToolDefinition[] {
             speakers: sessionNames(s, x),
             room_id: x.roomId,
             start: timeLabel(x.start),
+            day: weekdayLabel(sessionDay(x)),
             duration: x.duration,
             attendance: expectedAttendance(s, x),
             locked: x.locked,
@@ -151,6 +156,8 @@ export function buildTools(adapter: ToolAdapter): ToolDefinition[] {
           lunch: [timeLabel(s.event.breakStart), timeLabel(s.event.breakEnd)],
           turnoverMinutes: s.event.turnover,
           disruptions: s.disruptions,
+          scheduleMode: s.recurrence ? 'weekly' : 'single_event',
+          activeWeek: s.recurrence?.activeWeek ?? null,
         };
       },
     ),
@@ -184,6 +191,12 @@ export function buildTools(adapter: ToolAdapter): ToolDefinition[] {
           start_time: string('HH:mm. Required for delay or closure.'),
           end_time: string('HH:mm. Required for delay or closure.'),
           attendees: { type: 'integer', minimum: 1, maximum: 10000 },
+          day: {
+            type: 'integer',
+            minimum: 0,
+            maximum: 6,
+            description: 'Weekly mode only: Monday is 0 and Sunday is 6.',
+          },
           note: string('Brief factual description, up to 280 characters.'),
         },
         ['kind', 'target_id'],
@@ -207,6 +220,7 @@ export function buildTools(adapter: ToolAdapter): ToolDefinition[] {
                 : timeValue(text(v.end_time, 'End time', 5)),
             attendees: v.attendees ?? 0,
             note: v.note ?? '',
+            day: v.day ?? 0,
           },
         });
         return {

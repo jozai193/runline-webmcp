@@ -1,5 +1,5 @@
-import { DomainError, uid } from './domain.ts';
-import type { Actor, Workspace } from './domain.ts';
+import { DomainError, mondayOf, sessionDay, uid } from './domain.ts';
+import type { Actor, ChangeScope, Session, Workspace } from './domain.ts';
 import {
   applyMoves,
   createProposal,
@@ -18,6 +18,7 @@ import {
   parseObjective,
   parseSchedule,
   parseSession,
+  parseWeeklyRecurrence,
   record,
   text,
 } from './validation.ts';
@@ -46,6 +47,33 @@ export function transition(previous: Workspace, input: unknown): Workspace {
       'This action is reserved for the organizer interface. Agents can propose changes, not approve them.',
     );
   const state = structuredClone(previous);
+  const scope: ChangeScope =
+    command.scope === 'future' ? 'future' : 'this_week';
+  const currentWeekOverride = () => {
+    if (!state.recurrence) return;
+    const snapshot = {
+      weekStart: state.recurrence.activeWeek,
+      sessions: structuredClone(state.sessions),
+      disruptions: structuredClone(state.disruptions),
+    };
+    state.recurrence.overrides = [
+      snapshot,
+      ...state.recurrence.overrides.filter(
+        (item) => item.weekStart !== snapshot.weekStart,
+      ),
+    ].slice(0, 16);
+  };
+  const updateFuture = (mutate: (sessions: Session[]) => Session[]) => {
+    if (!state.recurrence) return;
+    state.recurrence.templateSessions = mutate(
+      state.recurrence.templateSessions,
+    );
+    state.recurrence.overrides = state.recurrence.overrides.map((override) =>
+      override.weekStart >= state.recurrence!.activeWeek
+        ? { ...override, sessions: mutate(override.sessions) }
+        : override,
+    );
+  };
   for (const proposal of state.proposals)
     proposal.speakerConsents ??= speakerConsentsFor(state, proposal.changes);
   let detail = '',
@@ -68,7 +96,8 @@ export function transition(previous: Workspace, input: unknown): Workspace {
             x.targetId === d.targetId &&
             x.start === d.start &&
             x.end === d.end &&
-            x.attendees === d.attendees,
+            x.attendees === d.attendees &&
+            (x.day ?? 0) === (d.day ?? 0),
         )
       )
         throw new DomainError(
@@ -76,6 +105,7 @@ export function transition(previous: Workspace, input: unknown): Workspace {
           'This disruption is already recorded.',
         );
       state.disruptions.push(d);
+      currentWeekOverride();
       changesSchedule = true;
       detail =
         d.note || `Recorded ${d.kind.replaceAll('_', ' ')} for ${d.targetId}.`;
@@ -89,6 +119,7 @@ export function transition(previous: Workspace, input: unknown): Workspace {
           'This disruption is no longer active.',
         );
       state.disruptions = state.disruptions.filter((d) => d.id !== target);
+      currentWeekOverride();
       changesSchedule = true;
       detail = 'Organizer removed a disruption constraint.';
       break;
@@ -97,6 +128,15 @@ export function transition(previous: Workspace, input: unknown): Workspace {
       const s = state.sessions.find((s) => s.id === id(command.id));
       if (!s) throw new DomainError('NOT_FOUND', 'Session not found.');
       s.locked = bool(command.locked, 'Locked');
+      if (state.recurrence) {
+        if (scope === 'future')
+          updateFuture((sessions) =>
+            sessions.map((item) =>
+              item.id === s.id ? { ...item, locked: s.locked } : item,
+            ),
+          );
+        else currentWeekOverride();
+      }
       changesSchedule = true;
       detail = `${s.locked ? 'Protected' : 'Unlocked'} “${s.title}”.`;
       break;
@@ -119,6 +159,16 @@ export function transition(previous: Workspace, input: unknown): Workspace {
           );
         state.sessions.push(s);
       }
+      if (state.recurrence) {
+        if (scope === 'future')
+          updateFuture((sessions) => {
+            const found = sessions.some((item) => item.id === s.id);
+            return found
+              ? sessions.map((item) => (item.id === s.id ? s : item))
+              : [...sessions, s];
+          });
+        else currentWeekOverride();
+      }
       changesSchedule = true;
       detail = `${existing ? 'Edited' : 'Added'} “${s.title}”.`;
       break;
@@ -136,15 +186,79 @@ export function transition(previous: Workspace, input: unknown): Workspace {
       state.disruptions = state.disruptions.filter(
         (d) => !(d.kind === 'attendance' && d.targetId === target),
       );
+      if (state.recurrence) {
+        if (scope === 'future')
+          updateFuture((sessions) =>
+            sessions.filter((item) => item.id !== target),
+          );
+        else currentWeekOverride();
+      }
       changesSchedule = true;
       detail = `Removed “${s.title}”.`;
       break;
     }
-    case 'save_event':
+    case 'save_event': {
       state.event = parseEvent(command.event);
+      if (command.recurrenceMode === 'weekly') {
+        const activeWeek = mondayOf(state.event.date);
+        state.event.date = activeWeek;
+        state.sessions = state.sessions.map((session) => ({
+          ...session,
+          day: sessionDay(session),
+        }));
+        if (state.recurrence) {
+          const override = state.recurrence.overrides.find(
+            (item) => item.weekStart === activeWeek,
+          );
+          state.recurrence.activeWeek = activeWeek;
+          state.sessions = structuredClone(
+            override?.sessions ?? state.recurrence.templateSessions,
+          );
+          state.disruptions = structuredClone(override?.disruptions ?? []);
+        } else
+          state.recurrence = {
+            mode: 'weekly',
+            activeWeek,
+            templateSessions: structuredClone(state.sessions),
+            overrides: [],
+          };
+      } else if (state.recurrence) {
+        state.recurrence = null;
+        state.sessions = state.sessions.map((session) => ({
+          ...session,
+          day: 0,
+        }));
+        state.disruptions = state.disruptions.map((disruption) => ({
+          ...disruption,
+          day: 0,
+        }));
+      }
       changesSchedule = true;
       detail = 'Updated event details and constraints.';
       break;
+    }
+    case 'set_active_week': {
+      if (!state.recurrence)
+        throw new DomainError(
+          'INVALID_STATE',
+          'Enable a repeating weekly schedule first.',
+        );
+      const activeWeek = mondayOf(text(command.weekStart, 'Week start', 10));
+      const override = state.recurrence.overrides.find(
+        (item) => item.weekStart === activeWeek,
+      );
+      state.recurrence.activeWeek = activeWeek;
+      state.event.date = activeWeek;
+      state.sessions = structuredClone(
+        override?.sessions ?? state.recurrence.templateSessions,
+      );
+      state.disruptions = structuredClone(override?.disruptions ?? []);
+      changesSchedule = true;
+      detail = override
+        ? `Opened the saved exception for the week of ${activeWeek}.`
+        : `Opened the weekly template for the week of ${activeWeek}.`;
+      break;
+    }
     case 'propose_repair': {
       const p = repairSchedule(state, parseObjective(command.objective), actor);
       state.proposals = [p, ...state.proposals].slice(0, 12);
@@ -252,10 +366,25 @@ export function transition(previous: Workspace, input: unknown): Workspace {
         );
       state.undo = {
         sessions: structuredClone(state.sessions),
+        recurrence: structuredClone(state.recurrence ?? null),
         atRevision: state.revision + 1,
         proposalId: p.id,
       };
       state.sessions = sessions;
+      if (state.recurrence) {
+        if (scope === 'future')
+          updateFuture((futureSessions) =>
+            futureSessions.map((session) => {
+              const move = p.changes.find(
+                (change) => change.sessionId === session.id,
+              );
+              return move
+                ? { ...session, start: move.start, roomId: move.roomId }
+                : session;
+            }),
+          );
+        else currentWeekOverride();
+      }
       p.status = 'applied';
       for (const old of state.proposals)
         if (old.id !== p.id && old.status === 'pending')
@@ -271,6 +400,8 @@ export function transition(previous: Workspace, input: unknown): Workspace {
           'Undo is available only until the next schedule or constraint edit.',
         );
       state.sessions = state.undo.sessions;
+      if ('recurrence' in state.undo)
+        state.recurrence = structuredClone(state.undo.recurrence ?? null);
       state.undo = null;
       changesSchedule = true;
       detail =
@@ -280,6 +411,23 @@ export function transition(previous: Workspace, input: unknown): Workspace {
     case 'import_schedule': {
       const schedule = parseSchedule(command.schedule);
       Object.assign(state, schedule);
+      const rawSchedule = record(command.schedule);
+      state.recurrence = parseWeeklyRecurrence(
+        rawSchedule.recurrence ??
+          (command.recurrenceMode === 'weekly'
+            ? {
+                mode: 'weekly',
+                activeWeek: schedule.event.date,
+                templateSessions: schedule.sessions,
+                overrides: [],
+              }
+            : null),
+        schedule,
+      );
+      if (state.recurrence) {
+        state.recurrence.activeWeek = mondayOf(state.recurrence.activeWeek);
+        state.event.date = state.recurrence.activeWeek;
+      }
       state.proposals = [];
       state.undo = null;
       changesSchedule = true;
@@ -293,6 +441,7 @@ export function transition(previous: Workspace, input: unknown): Workspace {
         revision: previous.revision,
         audit: previous.audit,
       });
+      state.recurrence = null;
       changesSchedule = true;
       detail = 'Organizer reset the workspace to the fictional sample event.';
       break;

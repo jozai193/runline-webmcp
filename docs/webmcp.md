@@ -6,8 +6,8 @@ Runline registers imperative JavaScript tools on `document.modelContext`, with `
 
 | Tool                | Effect                                                                                 |
 | ------------------- | -------------------------------------------------------------------------------------- |
-| `get_event_summary` | Read event, versions, conflict count, locked IDs and pending proposals.                |
-| `list_sessions`     | Read stable IDs and schedule information, at most six sessions per call.               |
+| `get_event_summary` | Read event, versions, schedule mode, active week, conflicts and pending proposals.     |
+| `list_sessions`     | Read stable IDs, weekdays and schedule information, at most six sessions per call.     |
 | `get_constraints`   | Read rooms, capacities, speakers, hours, lunch, turnover and disruptions.              |
 | `list_conflicts`    | Read current violations, six per page.                                                 |
 | `report_disruption` | Save a user-requested availability/capacity constraint; do not move sessions.          |
@@ -21,7 +21,9 @@ Every handler returns `{ ok: true, data }` or `{ ok: false, code, error }`. Sche
 
 ## Intended sequence
 
-Read summary → read relevant sessions and constraints → record the requested disruption → propose repair or moves → inspect proposal → request approval → stop for organizer action → organizer records every affected speaker's response → apply only after all confirm → read activity to verify the result.
+Read summary → confirm the organizer has opened the intended week → read relevant sessions and constraints → record the requested disruption → propose repair or moves → inspect proposal → request approval → stop for organizer action → organizer records every affected speaker's response → chooses this-week or future scope → apply only after all confirm → read activity to verify the result.
+
+In weekly mode, WebMCP tools operate on the week currently visible in the organizer interface. The human-only week navigator loads either the reusable template or that week's saved exception. Tools report weekday labels and the active week, but they cannot silently change recurrence scope or navigate to a different week.
 
 After a human edit, the agent must inspect/re-read rather than assume its previous proposal is still valid. The server checks the current version, proposal revision, locks, all hard constraints and every affected speaker confirmation before applying. Approval requires a pending proposal with at least one change, zero remaining conflicts and all affected speakers confirmed. A decline rejects the proposal; the organizer interface immediately asks the bounded search for a distinct alternative. Repeated repair requests at the same schedule revision exclude the exact change signatures of earlier proposals. An impossible request or exhausted bounded search remains a visible blocker.
 

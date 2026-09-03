@@ -1,4 +1,4 @@
-import { DomainError } from './domain.ts';
+import { DomainError, mondayOf } from './domain.ts';
 import type {
   Disruption,
   EventInfo,
@@ -8,6 +8,7 @@ import type {
   Schedule,
   Session,
   Speaker,
+  WeeklyRecurrence,
 } from './domain.ts';
 
 export function record(value: unknown): Record<string, unknown> {
@@ -87,6 +88,9 @@ function minute(value: unknown, label: string): number {
     );
   return m;
 }
+function weekday(value: unknown, label = 'Weekday'): number {
+  return integer(value ?? 0, label, 0, 6);
+}
 function unique(items: { id: string }[], label: string) {
   if (new Set(items.map((x) => x.id)).size !== items.length)
     throw new DomainError('INVALID_INPUT', `${label} IDs must be unique.`);
@@ -126,6 +130,7 @@ export function parseSession(
     attendees: integer(v.attendees, 'Attendance', 1, 10000),
     type: v.type as Session['type'],
     locked: bool(v.locked, 'Locked'),
+    ...(v.day == null ? {} : { day: weekday(v.day) }),
   };
 }
 export function parseDisruption(
@@ -176,6 +181,7 @@ export function parseDisruption(
         ? integer(v.attendees, 'Expected attendance', 1, 10000)
         : 0,
     note: v.note ? text(v.note, 'Note', 280) : '',
+    ...(v.day == null ? {} : { day: weekday(v.day) }),
   };
 }
 export function parseEvent(value: unknown): EventInfo {
@@ -273,6 +279,52 @@ export function parseSchedule(value: unknown): Schedule {
   );
   unique(schedule.disruptions, 'Disruption');
   return schedule;
+}
+export function parseWeeklyRecurrence(
+  value: unknown,
+  schedule: Schedule,
+): WeeklyRecurrence | null {
+  if (value == null) return null;
+  const v = record(value);
+  if (v.mode !== 'weekly')
+    throw new DomainError('INVALID_INPUT', 'Choose single or weekly mode.');
+  const activeWeek = mondayOf(
+    text(v.activeWeek ?? schedule.event.date, 'Week start', 10),
+  );
+  const templateSessions = list(
+    v.templateSessions ?? schedule.sessions,
+    'Template sessions',
+    24,
+    (item) => parseSession(item, schedule),
+  );
+  unique(templateSessions, 'Template session');
+  const overrides = list(v.overrides ?? [], 'Week overrides', 16, (item) => {
+    const row = record(item),
+      weekStart = mondayOf(text(row.weekStart, 'Override week', 10)),
+      sessions = list(row.sessions, 'Override sessions', 24, (session) =>
+        parseSession(session, schedule),
+      ),
+      scoped: Schedule = { ...schedule, sessions, disruptions: [] };
+    unique(sessions, 'Override session');
+    scoped.disruptions = list(
+      row.disruptions ?? [],
+      'Override disruptions',
+      12,
+      (disruption) => parseDisruption(disruption, scoped),
+    );
+    unique(scoped.disruptions, 'Override disruption');
+    return { weekStart, sessions, disruptions: scoped.disruptions };
+  });
+  if (
+    new Set(overrides.map((item) => item.weekStart)).size !== overrides.length
+  )
+    throw new DomainError('INVALID_INPUT', 'Override weeks must be unique.');
+  return {
+    mode: 'weekly',
+    activeWeek,
+    templateSessions,
+    overrides,
+  };
 }
 export function parseMoves(value: unknown): Move[] {
   return list(

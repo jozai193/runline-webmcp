@@ -13,6 +13,7 @@ import { portableSchedule, scheduleCSV, scheduleICS } from '../lib/export.ts';
 import { timeLabel, timeValue } from '../lib/domain.ts';
 import type { Workspace } from '../lib/domain.ts';
 import { buildTools, registerRunlineTools } from '../lib/webmcp.ts';
+import { parseScheduleInput } from '../lib/import.ts';
 
 const act = (
   s: Workspace,
@@ -398,6 +399,147 @@ void test('adding, editing, and removing a session is functional', () => {
   );
   s = act(s, 'remove_session', { id: 'new-session' });
   assert.equal(s.sessions.length, 12);
+});
+void test('weekly exceptions apply to one week and reset to the template', () => {
+  let s = createSample();
+  s = act(s, 'save_event', {
+    event: s.event,
+    recurrenceMode: 'weekly',
+  });
+  assert.equal(s.recurrence?.activeWeek, '2026-09-14');
+  const changed = { ...s.sessions[1], day: 2, start: 900 };
+  s = act(s, 'save_session', {
+    session: changed,
+    scope: 'this_week',
+  });
+  assert.equal(s.sessions[1].day, 2);
+  assert.equal(s.recurrence?.overrides.length, 1);
+  s = act(s, 'set_active_week', { weekStart: '2026-09-21' });
+  assert.equal(s.sessions[1].day, 0);
+  assert.notEqual(s.sessions[1].start, 900);
+  s = act(s, 'set_active_week', { weekStart: '2026-09-14' });
+  assert.equal(s.sessions[1].day, 2);
+  assert.equal(s.sessions[1].start, 900);
+});
+void test('permanent timetable edits flow into future weeks', () => {
+  let s = createSample();
+  s = act(s, 'save_event', {
+    event: s.event,
+    recurrenceMode: 'weekly',
+  });
+  s = act(s, 'save_session', {
+    session: { ...s.sessions[1], title: 'Permanent seminar', day: 3 },
+    scope: 'future',
+  });
+  s = act(s, 'set_active_week', { weekStart: '2026-10-05' });
+  assert.equal(s.sessions[1].title, 'Permanent seminar');
+  assert.equal(s.sessions[1].day, 3);
+});
+void test('a repaired weekly exception resets next week and undo restores it', () => {
+  let s = createSample();
+  s = act(s, 'save_event', {
+    event: s.event,
+    recurrenceMode: 'weekly',
+  });
+  const original = structuredClone(s.sessions);
+  s = act(s, 'report_disruption', {
+    disruption: {
+      kind: 'speaker_delay',
+      targetId: 'mira',
+      start: 540,
+      end: 840,
+      day: 0,
+    },
+  });
+  s = act(s, 'propose_repair', { objective: 'fewest_changes' });
+  const proposalId = s.proposals[0].id;
+  s = confirmAll(s, proposalId);
+  s = act(s, 'apply_proposal', { id: proposalId, scope: 'this_week' });
+  assert.notDeepEqual(s.sessions, original);
+  assert.equal(s.recurrence?.overrides.length, 1);
+  const applied = structuredClone(s.sessions);
+  s = act(s, 'undo');
+  assert.deepEqual(s.sessions, original);
+  assert.deepEqual(s.recurrence?.overrides[0].sessions, original);
+  s = act(s, 'set_active_week', { weekStart: '2026-09-21' });
+  assert.deepEqual(s.sessions, original);
+  s = act(s, 'set_active_week', { weekStart: '2026-09-14' });
+  assert.notDeepEqual(s.sessions, applied);
+  assert.deepEqual(s.sessions, original);
+});
+void test('changing the week in event settings loads that saved week', () => {
+  let s = createSample();
+  s = act(s, 'save_event', {
+    event: s.event,
+    recurrenceMode: 'weekly',
+  });
+  s = act(s, 'save_session', {
+    session: { ...s.sessions[1], title: 'One-week class' },
+    scope: 'this_week',
+  });
+  s = act(s, 'save_event', {
+    event: { ...s.event, date: '2026-09-21' },
+    recurrenceMode: 'weekly',
+  });
+  assert.notEqual(s.sessions[1].title, 'One-week class');
+  s = act(s, 'save_event', {
+    event: { ...s.event, date: '2026-09-14' },
+    recurrenceMode: 'weekly',
+  });
+  assert.equal(s.sessions[1].title, 'One-week class');
+});
+void test('sessions on different weekdays do not conflict', () => {
+  const s = createSample();
+  s.sessions = [
+    { ...s.sessions[1], day: 0, roomId: 'auditorium', start: 600 },
+    { ...s.sessions[2], day: 1, roomId: 'auditorium', start: 600 },
+  ];
+  assert.equal(findConflicts(s).length, 0);
+});
+void test('weekly disruption matching is isolated to its weekday', () => {
+  let s = createSample();
+  s.sessions[1] = { ...s.sessions[1], day: 1 };
+  s = act(s, 'report_disruption', {
+    disruption: {
+      kind: 'speaker_delay',
+      targetId: s.sessions[1].speakerIds[0],
+      start: s.sessions[1].start,
+      end: s.sessions[1].start + s.sessions[1].duration,
+      day: 0,
+    },
+  });
+  assert.equal(findConflicts(s).length, 0);
+  s = act(s, 'report_disruption', {
+    disruption: {
+      kind: 'speaker_delay',
+      targetId: s.sessions[1].speakerIds[0],
+      start: s.sessions[1].start,
+      end: s.sessions[1].start + s.sessions[1].duration,
+      day: 1,
+    },
+  });
+  assert.ok(
+    findConflicts(s).some((conflict) => conflict.kind === 'availability'),
+  );
+});
+void test('timetable CSV creates a reusable weekly schedule', () => {
+  const csv = [
+    'Mode,Date,Day,Session,Start,Duration,Room,Speakers,Attendance,Room Capacity,Locked',
+    'weekly,2026-09-07,Monday,Physics,09:00,60,Room 101,Dr Rao,45,60,No',
+    'weekly,2026-09-07,Tuesday,Chemistry,10:00,60,Lab 2,Dr Sen,30,40,Yes',
+  ].join('\n');
+  const imported = parseScheduleInput(csv, createSample());
+  assert.equal(imported.recurrenceMode, 'weekly');
+  const s = act(createSample(), 'import_schedule', {
+    schedule: imported.schedule,
+    recurrenceMode: imported.recurrenceMode,
+  });
+  assert.equal(s.recurrence?.mode, 'weekly');
+  assert.deepEqual(
+    s.sessions.map((session) => session.day),
+    [0, 1],
+  );
+  assert.equal(findConflicts(s).length, 0);
 });
 void test('duplicate disruption and invalid references are rejected', () => {
   const s = delayed();

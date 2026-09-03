@@ -3,7 +3,7 @@
 
 import { LockKeyhole, TriangleAlert, Users, ArrowUpRight } from 'lucide-react';
 import type { Conflict, Proposal, Session, Workspace } from '@/lib/domain';
-import { roomName, sessionNames, timeLabel } from '@/lib/domain';
+import { roomName, sessionDay, sessionNames, timeLabel } from '@/lib/domain';
 import { applyMoves, expectedAttendance } from '@/lib/engine';
 
 export function ScheduleBoard({
@@ -13,6 +13,7 @@ export function ScheduleBoard({
   preview,
   query,
   agenda,
+  activeDay,
   onSession,
 }: {
   state: Workspace;
@@ -21,6 +22,7 @@ export function ScheduleBoard({
   preview: boolean;
   query: string;
   agenda: boolean;
+  activeDay: number;
   onSession: (session: Session) => void;
 }) {
   const canPreview =
@@ -30,10 +32,12 @@ export function ScheduleBoard({
   const sessions = canPreview
     ? applyMoves(state, proposal.changes)
     : state.sessions;
-  const shown = sessions.filter((s) =>
-    `${s.title} ${sessionNames(state, s)} ${roomName(state, s.roomId)}`
-      .toLowerCase()
-      .includes(query.toLowerCase()),
+  const shown = sessions.filter(
+    (s) =>
+      (!state.recurrence || sessionDay(s) === activeDay) &&
+      `${s.title} ${sessionNames(state, s)} ${roomName(state, s.roomId)}`
+        .toLowerCase()
+        .includes(query.toLowerCase()),
   );
   const affected = new Set(
     (canPreview ? proposal.conflicts : conflicts).flatMap((c) => c.sessionIds),
@@ -147,7 +151,12 @@ export function ScheduleBoard({
               </div>
             )}
             {state.disruptions
-              .filter((d) => d.kind === 'room_closed' && d.targetId === room.id)
+              .filter(
+                (d) =>
+                  d.kind === 'room_closed' &&
+                  d.targetId === room.id &&
+                  (!state.recurrence || (d.day ?? 0) === activeDay),
+              )
               .map((d) => (
                 <div
                   key={d.id}

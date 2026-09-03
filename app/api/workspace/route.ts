@@ -98,11 +98,17 @@ export async function POST(request: Request) {
       );
     if (!validOrigin(request))
       return json(
-        { error: 'A same-origin request is required.', code: 'ORIGIN_REQUIRED' },
+        {
+          error: 'A same-origin request is required.',
+          code: 'ORIGIN_REQUIRED',
+        },
         403,
       );
     if (!request.headers.get('content-type')?.startsWith('application/json'))
-      return json({ error: 'Use application/json.', code: 'CONTENT_TYPE' }, 415);
+      return json(
+        { error: 'Use application/json.', code: 'CONTENT_TYPE' },
+        415,
+      );
     let input: unknown;
     try {
       input = JSON.parse(raw);

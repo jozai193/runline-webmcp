@@ -1,5 +1,11 @@
-import { roomName, sessionNames, timeLabel } from './domain.ts';
-import type { Schedule } from './domain.ts';
+import {
+  roomName,
+  sessionDay,
+  sessionNames,
+  timeLabel,
+  weekdayLabel,
+} from './domain.ts';
+import type { Schedule, WeeklyRecurrence } from './domain.ts';
 import { expectedAttendance } from './engine.ts';
 
 const safeCSV = (value: string | number) => {
@@ -7,15 +13,39 @@ const safeCSV = (value: string | number) => {
   if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
   return `"${s.replaceAll('"', '""')}"`;
 };
-export function scheduleCSV(schedule: Schedule) {
+export function scheduleCSV(
+  schedule: Schedule & { recurrence?: WeeklyRecurrence | null },
+) {
   return [
-    ['Session', 'Start', 'End', 'Room', 'Speakers', 'Attendance', 'Locked'],
+    [
+      'Mode',
+      'Date',
+      'Event',
+      'Venue',
+      'Timezone',
+      'Day',
+      'Session',
+      'Start',
+      'End',
+      'Duration',
+      'Room',
+      'Speakers',
+      'Attendance',
+      'Locked',
+    ],
     ...[...schedule.sessions]
-      .sort((a, b) => a.start - b.start)
+      .sort((a, b) => sessionDay(a) - sessionDay(b) || a.start - b.start)
       .map((s) => [
+        schedule.recurrence ? 'weekly' : 'single',
+        schedule.event.date,
+        schedule.event.name,
+        schedule.event.venue,
+        schedule.event.timezone,
+        weekdayLabel(sessionDay(s)),
         s.title,
         timeLabel(s.start),
         timeLabel(s.start + s.duration),
+        s.duration,
         roomName(schedule, s.roomId),
         sessionNames(schedule, s),
         expectedAttendance(schedule, s),
@@ -51,9 +81,9 @@ function foldICS(line: string) {
 }
 export function scheduleICS(schedule: Schedule) {
   const date = schedule.event.date.replaceAll('-', '');
-  const stamp = (minutes: number) => {
+  const stamp = (minutes: number, dayOffset = 0) => {
     const day = new Date(`${schedule.event.date}T00:00:00Z`);
-    day.setUTCDate(day.getUTCDate() + Math.floor(minutes / 1440));
+    day.setUTCDate(day.getUTCDate() + dayOffset + Math.floor(minutes / 1440));
     return `${day.toISOString().slice(0, 10).replaceAll('-', '')}T${timeLabel(minutes % 1440).replace(':', '')}00`;
   };
   const lines = [
@@ -73,8 +103,8 @@ export function scheduleICS(schedule: Schedule) {
         .toISOString()
         .replace(/[-:]/g, '')
         .replace(/\.\d+Z/, 'Z')}`,
-      `DTSTART;TZID=${schedule.event.timezone}:${stamp(s.start)}`,
-      `DTEND;TZID=${schedule.event.timezone}:${stamp(s.start + s.duration)}`,
+      `DTSTART;TZID=${schedule.event.timezone}:${stamp(s.start, sessionDay(s))}`,
+      `DTEND;TZID=${schedule.event.timezone}:${stamp(s.start + s.duration, sessionDay(s))}`,
       `SUMMARY:${escapeICS(s.title)}`,
       `LOCATION:${escapeICS(`${roomName(schedule, s.roomId)}, ${schedule.event.venue}`)}`,
       `DESCRIPTION:${escapeICS(`${sessionNames(schedule, s)}. ${s.locked ? 'Protected session.' : ''}`)}`,
@@ -83,12 +113,16 @@ export function scheduleICS(schedule: Schedule) {
   lines.push('END:VCALENDAR');
   return lines.map(foldICS).join('\r\n') + '\r\n';
 }
-export function portableSchedule(s: Schedule): Schedule {
-  return {
+export function portableSchedule(
+  s: Schedule & { recurrence?: WeeklyRecurrence | null },
+): Schedule & { recurrence?: WeeklyRecurrence } {
+  const portable: Schedule & { recurrence?: WeeklyRecurrence } = {
     event: s.event,
     rooms: s.rooms,
     speakers: s.speakers,
     sessions: s.sessions,
     disruptions: s.disruptions,
   };
+  if (s.recurrence) portable.recurrence = s.recurrence;
+  return portable;
 }

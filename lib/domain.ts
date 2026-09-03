@@ -1,6 +1,16 @@
 export type SessionType = 'keynote' | 'talk' | 'panel' | 'workshop';
 export type Objective = 'fewest_changes' | 'preserve_times' | 'preserve_rooms';
 export type Actor = 'human' | 'agent';
+export type ChangeScope = 'this_week' | 'future';
+export const WEEKDAYS = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+] as const;
 export interface Room {
   id: string;
   name: string;
@@ -20,6 +30,8 @@ export interface Session {
   attendees: number;
   type: SessionType;
   locked: boolean;
+  /** Zero is Monday. Omitted legacy values are treated as Monday. */
+  day?: number;
 }
 export interface EventInfo {
   name: string;
@@ -40,6 +52,8 @@ export interface Disruption {
   end: number;
   attendees: number;
   note: string;
+  /** Zero is Monday. Omitted legacy values are treated as Monday. */
+  day?: number;
 }
 export interface Schedule {
   event: EventInfo;
@@ -111,7 +125,24 @@ export interface Workspace extends Schedule {
   revision: number;
   proposals: Proposal[];
   audit: AuditEntry[];
-  undo: { sessions: Session[]; atRevision: number; proposalId: string } | null;
+  undo: {
+    sessions: Session[];
+    recurrence?: WeeklyRecurrence | null;
+    atRevision: number;
+    proposalId: string;
+  } | null;
+  recurrence?: WeeklyRecurrence | null;
+}
+export interface WeekOverride {
+  weekStart: string;
+  sessions: Session[];
+  disruptions: Disruption[];
+}
+export interface WeeklyRecurrence {
+  mode: 'weekly';
+  activeWeek: string;
+  templateSessions: Session[];
+  overrides: WeekOverride[];
 }
 export class DomainError extends Error {
   code: string;
@@ -143,4 +174,30 @@ export function sessionNames(schedule: Schedule, session: Session) {
 }
 export function roomName(schedule: Schedule, id: string) {
   return schedule.rooms.find((r) => r.id === id)?.name ?? id;
+}
+export function sessionDay(session: Pick<Session, 'day'>) {
+  return session.day ?? 0;
+}
+export function weekdayLabel(day: number) {
+  return WEEKDAYS[day] ?? `Day ${day + 1}`;
+}
+export function mondayOf(date: string) {
+  const value = new Date(`${date}T12:00:00Z`);
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+    !Number.isFinite(value.getTime()) ||
+    value.toISOString().slice(0, 10) !== date
+  )
+    throw new DomainError(
+      'INVALID_INPUT',
+      'Use a real date in YYYY-MM-DD format.',
+    );
+  const delta = (value.getUTCDay() + 6) % 7;
+  value.setUTCDate(value.getUTCDate() - delta);
+  return value.toISOString().slice(0, 10);
+}
+export function dateForDay(weekStart: string, day: number) {
+  const value = new Date(`${weekStart}T12:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + day);
+  return value.toISOString().slice(0, 10);
 }
