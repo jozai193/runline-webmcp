@@ -84,7 +84,7 @@ Authenticated participant accounts or signed confirmation links, outbound notifi
 
 ### AI assistance
 
-The implementation, documentation and test suite were built with OpenAI Codex and ChatGPT assistance. The social preview artwork was AI-generated, and the local video draft uses Deepgram Aura-2 Orion synthetic narration with an on-screen disclosure. The running application does not contain an embedded LLM or simulated AI conversation: it exposes actual WebMCP tools to a compatible browser agent.
+The implementation, documentation and test suite were built with OpenAI Codex and ChatGPT assistance. The social preview artwork was AI-generated, and the public demo video uses Deepgram Aura-2 Orion synthetic narration with an on-screen disclosure. The running application does not contain an embedded LLM or simulated AI conversation: it exposes actual WebMCP tools to a compatible browser agent.
 
 ## Strategy against the rubric
 
